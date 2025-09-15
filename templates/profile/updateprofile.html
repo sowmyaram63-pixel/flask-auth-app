@@ -1,0 +1,28 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Profile</title>
+</head>
+<body>
+    <h2>Update Profile</h2>
+
+    <form method="POST">
+        <label>Name:</label><br>
+        <input type="text" name="name" value="{{ user.name or '' }}"><br><br>
+
+        <label>Phone:</label><br>
+        <input type="text" name="phone" value="{{ user.phone or '' }}"><br><br>
+
+        <label>Bio:</label><br>
+        <textarea name="bio">{{ user.bio or '' }}</textarea><br><br>
+
+        <label>New Password (leave blank to keep current):</label><br>
+        <input type="password" name="password"><br><br>
+
+        <button type="submit">Update</button>
+    </form>
+
+    <p><a href="/profile">Back to Profile</a></p>
+</body>
+</html>
