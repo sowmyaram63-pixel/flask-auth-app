@@ -1,0 +1,16 @@
+
+# Ignore database files
+*.db
+instance/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+venv/
+.env/
+
+# Mac system files
+.DS_Store
