@@ -1,0 +1,43 @@
+
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>👥 All Profiles</h2>
+
+    <!-- Accepted -->
+    <h3 style="color: #28a745;">✅ Accepted Profiles</h3>
+    {% if accepted_users %}
+        <ul>
+            {% for user in accepted_users %}
+                <li><b>{{ user.email }}</b> — {{ user.name or "N/A" }} — {{ user.phone or "N/A" }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No accepted profiles yet.</p>
+    {% endif %}
+
+    <!-- Rejected -->
+    <h3 style="color: #dc3545;">❌ Rejected Profiles</h3>
+    {% if rejected_users %}
+        <ul>
+            {% for user in rejected_users %}
+                <li><b>{{ user.email }}</b> — {{ user.name or "N/A" }} — {{ user.phone or "N/A" }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No rejected profiles yet.</p>
+    {% endif %}
+
+    <!-- Pending -->
+    <h3 style="color: #ffc107;">⏳ Pending Profiles</h3>
+    {% if pending_users %}
+        <ul>
+            {% for user in pending_users %}
+                <li><b>{{ user.email }}</b> — {{ user.name or "N/A" }} — {{ user.phone or "N/A" }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No pending profiles.</p>
+    {% endif %}
+</div>
+{% endblock %}

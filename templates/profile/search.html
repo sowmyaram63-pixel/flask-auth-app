@@ -1,0 +1,39 @@
+
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>🔍 Search Profiles</h2>
+
+    <form method="POST" class="form-inline">
+        <input type="text" name="query" placeholder="Search by email, name, or phone..." value="{{ query }}">
+        <button type="submit" class="btn btn-blue">Search</button>
+    </form>
+
+    {% if users %}
+        <ul>
+            {% for user in users %}
+                <li class="search-result">
+                    <b>{{ user.email }}</b> — {{ user.name or 'N/A' }} — {{ user.phone or 'N/A' }}
+                    <p>Status: <span class="status {{ user.status }}">{{ user.status }}</span></p>
+
+                    <form method="POST" action="{{ url_for('update_status', user_id=user.id) }}" style="display:inline;">
+                        <input type="hidden" name="status" value="accepted">
+                        <button type="submit" class="btn btn-green">Accept</button>
+                    </form>
+
+                    <form method="POST" action="{{ url_for('update_status', user_id=user.id) }}" style="display:inline;">
+                        <input type="hidden" name="status" value="rejected">
+                        <button type="submit" class="btn btn-red">Reject</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        {% if query %}
+            <p style="color: red; font-weight: bold;">
+                ❌ No profiles found for "<i>{{ query }}</i>"
+            </p>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

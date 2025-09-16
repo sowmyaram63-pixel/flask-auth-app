@@ -1,17 +1,19 @@
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Profile</title>
-</head>
-<body>
-    
-    <h2>Welcome, {{ user.email }} 🎉</h2>
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>Welcome, {{ user.email }} </h2>
+
     <p><b>Name:</b> {{ user.name }}</p>
     <p><b>Phone:</b> {{ user.phone }}</p>
     <p><b>Bio:</b> {{ user.bio }}</p>
-    <a href="/update_profile">Edit Profile</a>
-    <a href="/logout">Logout</a>
-</body>
-</html>
+    <p><b>Status:</b> <span class="status {{ user.status }}">{{ user.status }}</span></p>
 
+    <div class="actions">
+      <a href="{{ url_for('search') }}" class="btn btn-green">🔎 Search Profiles</a>
+      <a href="{{ url_for('update_profile') }}" class="btn btn-blue">✏️ Edit Profile</a>
+      <a href="{{ url_for('logout') }}" class="btn btn-red">🚪 Logout</a>
+      <a href="{{ url_for('all_profiles') }}" class="btn btn-dark">📋 View All Profiles</a>
+    </div>
+</div>
+{% endblock %}

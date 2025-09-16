@@ -2,6 +2,8 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import text
+from sqlalchemy import or_
 import os
 
 app = Flask(__name__)
@@ -21,6 +23,7 @@ class User(db.Model):
     name = db.Column(db.String(100))
     phone = db.Column(db.String(20))
     bio = db.Column(db.String(500))
+    status = db.Column(db.String(20),  default="pending")
 
 # Make sure database tables are created within app context
 with app.app_context():
@@ -92,7 +95,58 @@ def logout():
     session.clear()
     return redirect(url_for("login"))
 
+@app.route("/search", methods=["GET", "POST"])
+def search():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    query = ""
+    users = []
+    if request.method == "POST":
+        query = request.form.get("query", "").strip()
+        if query:
+            users = User.query.filter(
+                or_(
+                    User.email.ilike(f"%{query}%"),
+                    User.name.ilike(f"%{query}%"),
+                    User.phone.ilike(f"%{query}%")
+                )
+            ).all()
+    return render_template("profile/search.html", users=users, query=query)
+
+
+@app.route("/update_status/<int:user_id>", methods=["POST"])
+def update_status(user_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    status = request.form.get("status")
+    if status not in ["accepted", "rejected", "pending"]:
+        return "Invalid status", 400
+
+    user = db.session.get(User, user_id)
+    if user:
+        user.status = status
+        db.session.commit()
+    return redirect(url_for("search"))
+
+@app.route("/all_profiles")
+def all_profiles():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    accepted_users = User.query.filter_by(status="accepted").all()
+    rejected_users = User.query.filter_by(status="rejected").all()
+    pending_users = User.query.filter_by(status="pending").all()
+
+    return render_template(
+        "profile/all_profiles.html",
+        accepted_users=accepted_users,
+        rejected_users=rejected_users,
+        pending_users=pending_users,
+    )
 
 if __name__ == "__main__":
     # Run Flask on port 5002 to avoid macOS port conflicts
     app.run(debug=True, port=5002)
+

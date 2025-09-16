@@ -1,0 +1,36 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title or "My App" }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Navbar -->
+    <header class="navbar">
+        <h1>Website</h1>
+        <nav>
+            {% if session.get("user_id") %}
+                <a href="{{ url_for('profile') }}">Profile</a>
+                <a href="{{ url_for('search') }}">Search</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('signup') }}">Sign Up</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <!-- Main content goes here -->
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>© 2025 MyApp. All rights reserved.</p>
+    </footer>
+</body>
+</html>

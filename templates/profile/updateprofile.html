@@ -1,28 +1,23 @@
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Update Profile</title>
-</head>
-<body>
-    <h2>Update Profile</h2>
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>✏️ Update Profile</h2>
 
-    <form method="POST">
-        <label>Name:</label><br>
-        <input type="text" name="name" value="{{ user.name or '' }}"><br><br>
+    <form method="POST" class="form">
+        <label>Name</label>
+        <input type="text" name="name" value="{{ user.name or '' }}">
 
-        <label>Phone:</label><br>
-        <input type="text" name="phone" value="{{ user.phone or '' }}"><br><br>
+        <label>Phone</label>
+        <input type="text" name="phone" value="{{ user.phone or '' }}">
 
-        <label>Bio:</label><br>
-        <textarea name="bio">{{ user.bio or '' }}</textarea><br><br>
+        <label>Bio</label>
+        <textarea name="bio">{{ user.bio or '' }}</textarea>
 
-        <label>New Password (leave blank to keep current):</label><br>
-        <input type="password" name="password"><br><br>
+        <label>New Password (optional)</label>
+        <input type="password" name="password">
 
-        <button type="submit">Update</button>
+        <button type="submit" class="btn btn-blue">Save Changes</button>
     </form>
-
-    <p><a href="/profile">Back to Profile</a></p>
-</body>
-</html>
+</div>
+{% endblock %}
