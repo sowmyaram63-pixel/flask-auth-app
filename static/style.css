@@ -3,7 +3,7 @@
 
 body {
     font-family: Arial, sans-serif;
-    background: #f4f7fb;
+    background:#FFF9F9 ;
     margin: 0;
     padding: 0;
 }
@@ -73,25 +73,20 @@ a.logout-btn {
     background-color: #f44336; /* red */
 }
 .navbar {
-    background: linear-gradient(90deg, #0062E6, #33AEFF);
-    color: #fff;
-    padding: 15px 30px;
+    
+    background: linear-gradient(90deg, #A8D8EA, #FDCEDF); /* pastel blue → pink */
+    padding: 1rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0px 2px 8px rgba(0,0,0,0.2);
-    position: sticky; /* stays on top */
-    top: 0;
-    z-index: 1000;
-
-    
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 .content {
-    flex: 1;
-    padding: 40px 20px; /* top-bottom, left-right */
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
+    max-width: 600px;
+    margin: 60px auto;
+    padding: 20px;
+
+    
 }
 
 .navbar h1 {
@@ -122,14 +117,14 @@ a.logout-btn {
     background: rgba(255, 255, 255, 0.2);
 }
 .card {
-    background: #fff;
+    background: #FFFFFF;
+    padding: 2rem;
     border-radius: 12px;
-    padding: 30px;
-    width: 100%;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
     max-width: 600px;
-    box-shadow: 0px 8px 20px rgba(0,0,0,0.15);
-    margin-top: 30px; /* space between navbar and card */
-    animation: fadeIn 0.5s ease-in-out;
+    margin: 3rem auto;
+    text-align: center;
+    
 }
 
 .actions {
@@ -149,6 +144,121 @@ a.logout-btn {
     text-decoration: none;
     transition: all 0.3s ease;
     color: #fff;
+}
+.navbar .logo {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #444;
+}
+.navbar-nav-links {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+    
+}
+.navbar .nav-links li {
+    display: inline;
+}
+
+.navbar,nav-links a {
+    text-decoration: none;
+    color: #444;
+    font-weight: 600;
+}
+
+.navbar .nav-links a:hover {
+    color: #6C5B7B; /* pastel purple hover */
+}
+
+.footer {
+    text-align: center;
+    padding: 1rem;
+    margin-top: 2rem;
+    background: #FDCEDF; /* pastel pink */
+    color: #444;
+}
+/* Google login button */
+.google-login {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.google-btn {
+    display: inline-block;
+    background: #ffffff;
+    border: 1px solid #ddd;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 14px;
+    text-decoration: none;
+    color: #444;
+    font-weight: bold;
+    margin-top: 10px;
+    transition: background 0.3s ease;
+
+}
+
+.google-btn img {
+    width: 20px;
+    height: 20px;
+}
+
+.google-btn:hover {
+    background-color: #f1f1f1;
+    box-shadow: 0 5px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Auth card */
+.auth-card {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 30px;
+    background: #fdfdfd;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* Input fields */
+.auth-card input {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0 15px 0;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+/* Primary button */
+.btn-primary {
+    background: #a3c9f9; /* pastel blue */
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+    width: 100%;
+}
+
+.btn-primary:hover {
+    background: #82b1f5;
+}
+
+/* Links */
+.extra-links {
+    margin: 15px 0;
+    font-size: 14px;
+}
+
+.extra-links a {
+    color: #6a5acd; /* pastel purple */
+    text-decoration: none;
+}
+
+.extra-links a:hover {
+    text-decoration: underline;
 }
 
 /* Different button colors */

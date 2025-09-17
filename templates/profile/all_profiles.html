@@ -1,43 +1,41 @@
 
 {% extends "base.html" %}
+
+{% block title %}All Profiles{% endblock %}
+
 {% block content %}
-<div class="card">
-    <h2>👥 All Profiles</h2>
+  <h2>All Profiles</h2>
 
-    <!-- Accepted -->
-    <h3 style="color: #28a745;">✅ Accepted Profiles</h3>
-    {% if accepted_users %}
-        <ul>
-            {% for user in accepted_users %}
-                <li><b>{{ user.email }}</b> — {{ user.name or "N/A" }} — {{ user.phone or "N/A" }}</li>
-            {% endfor %}
-        </ul>
+  <h3>✅ Accepted</h3>
+  <ul>
+    {% for u in accepted_users %}
+      <li class="accepted">{{ u.name or u.email }}</li>
     {% else %}
-        <p>No accepted profiles yet.</p>
-    {% endif %}
+      <li>No accepted users yet</li>
+    {% endfor %}
+  </ul>
 
-    <!-- Rejected -->
-    <h3 style="color: #dc3545;">❌ Rejected Profiles</h3>
-    {% if rejected_users %}
-        <ul>
-            {% for user in rejected_users %}
-                <li><b>{{ user.email }}</b> — {{ user.name or "N/A" }} — {{ user.phone or "N/A" }}</li>
-            {% endfor %}
-        </ul>
+  <h3>❌ Rejected</h3>
+  <ul>
+    {% for u in rejected_users %}
+      <li class="rejected">{{ u.name or u.email }}</li>
     {% else %}
-        <p>No rejected profiles yet.</p>
-    {% endif %}
+      <li>No rejected users yet</li>
+    {% endfor %}
+  </ul>
 
-    <!-- Pending -->
-    <h3 style="color: #ffc107;">⏳ Pending Profiles</h3>
-    {% if pending_users %}
-        <ul>
-            {% for user in pending_users %}
-                <li><b>{{ user.email }}</b> — {{ user.name or "N/A" }} — {{ user.phone or "N/A" }}</li>
-            {% endfor %}
-        </ul>
+  <h3>⏳ Pending</h3>
+  <ul>
+    {% for u in pending_users %}
+      <li class="pending">{{ u.name or u.email }}</li>
     {% else %}
-        <p>No pending profiles.</p>
-    {% endif %}
-</div>
+      <li>No pending users yet</li>
+    {% endfor %}
+  </ul>
+
+  <p>
+    <a href="/search">🔍 Back to Search</a> |
+    <a href="/profile">👤 Back to Profile</a> |
+    <a href="/logout">🚪 Logout</a>
+  </p>
 {% endblock %}

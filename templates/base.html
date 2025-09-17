@@ -4,33 +4,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title or "My App" }}</title>
+    <title>{{ title if title else "My App" }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <!-- Navbar -->
-    <header class="navbar">
-        <h1>Website</h1>
-        <nav>
+    <nav class="navbar">
+        <div class="logo">🌸 My App</div>
+        <ul class="nav-links">
             {% if session.get("user_id") %}
-                <a href="{{ url_for('profile') }}">Profile</a>
-                <a href="{{ url_for('search') }}">Search</a>
-                <a href="{{ url_for('logout') }}">Logout</a>
+                <li><a href="{{ url_for('profile') }}">Profile</a></li>
+                <li><a href="{{ url_for('search') }}">Search</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
             {% else %}
-                <a href="{{ url_for('login') }}">Login</a>
-                <a href="{{ url_for('signup') }}">Sign Up</a>
+                <li><a href="{{ url_for('login') }}">Login</a></li>
+                <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
             {% endif %}
-        </nav>
-    </header>
+        </ul>
+    </nav>
 
-    <!-- Main content goes here -->
+    <!-- Main Content -->
     <main class="content">
-        {% block content %}{% endblock %}
+        <div class="card">
+            {% block content %}{% endblock %}
+        </div>
     </main>
 
     <!-- Footer -->
-    <footer>
-        <p>© 2025 MyApp. All rights reserved.</p>
+    <footer class="footer">
+        <p>© {{ 2025 }} MyApp. All rights reserved.</p>
     </footer>
 </body>
 </html>

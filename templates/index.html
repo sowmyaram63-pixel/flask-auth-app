@@ -1,16 +1,21 @@
 
-<<!DOCTYPE html>
-<html>
-<head>
-    <title>Home</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-<div class="container">
-    <h1>Welcome To My Website 🚀</h1>
-    <p><a href="/signup">Sign Up</a> | <a href="/login">Login</a></p>
+{% extends "base.html" %}
 
-</div>
-    
-</body>
-</html>
+{% block title %}Home{% endblock %}
+
+{% block content %}
+  <h2>🏠 Welcome to Our App</h2>
+
+  {% if session.user_id %}
+    <p>Hello 👋, you are logged in!</p>
+    <ul>
+      <li><a href="/profile">👤 View Profile</a></li>
+      <li><a href="/update_profile">✏️ Update Profile</a></li>
+      <li><a href="/search">🔍 Search Users</a></li>
+      <li><a href="/all_profiles">📋 All Profiles</a></li>
+      <li><a href="/logout">🚪 Logout</a></li>
+    </ul>
+  {% else %}
+    <p>Please <a href="/login">🔐 Login</a> or <a href="/signup">📝 Sign up</a> to continue.</p>
+  {% endif %}
+{% endblock %}

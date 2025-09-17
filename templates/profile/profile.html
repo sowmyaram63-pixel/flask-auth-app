@@ -1,19 +1,18 @@
 
 {% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
 {% block content %}
-<div class="card">
-    <h2>Welcome, {{ user.email }} </h2>
+  <h2>👤 Profile</h2>
+  <p><strong>Email:</strong> {{ user.email }}</p>
+  <p><strong>Name:</strong> {{ user.name }}</p>
+  <p><strong>Phone:</strong> {{ user.phone }}</p>
+  <p><strong>Bio:</strong> {{ user.bio }}</p>
 
-    <p><b>Name:</b> {{ user.name }}</p>
-    <p><b>Phone:</b> {{ user.phone }}</p>
-    <p><b>Bio:</b> {{ user.bio }}</p>
-    <p><b>Status:</b> <span class="status {{ user.status }}">{{ user.status }}</span></p>
-
-    <div class="actions">
-      <a href="{{ url_for('search') }}" class="btn btn-green">🔎 Search Profiles</a>
-      <a href="{{ url_for('update_profile') }}" class="btn btn-blue">✏️ Edit Profile</a>
-      <a href="{{ url_for('logout') }}" class="btn btn-red">🚪 Logout</a>
-      <a href="{{ url_for('all_profiles') }}" class="btn btn-dark">📋 View All Profiles</a>
-    </div>
-</div>
+  <p>
+    <a href="/update_profile">✏️ Edit Profile</a> |
+    <a href="/all_profiles">📋 View All Profiles</a> |
+    <a href="/logout">🚪 Logout</a>
+  </p>
 {% endblock %}

@@ -16,15 +16,10 @@
                     <b>{{ user.email }}</b> — {{ user.name or 'N/A' }} — {{ user.phone or 'N/A' }}
                     <p>Status: <span class="status {{ user.status }}">{{ user.status }}</span></p>
 
-                    <form method="POST" action="{{ url_for('update_status', user_id=user.id) }}" style="display:inline;">
-                        <input type="hidden" name="status" value="accepted">
-                        <button type="submit" class="btn btn-green">Accept</button>
-                    </form>
+                    <a href="{{ url_for('connect', user_id=user.id, action='accept') }}" class="btn btn-success">Accept</a>
+                    <a href="{{ url_for('connect', user_id=user.id, action='reject') }}" class="btn btn-danger">Reject</a>
+       
 
-                    <form method="POST" action="{{ url_for('update_status', user_id=user.id) }}" style="display:inline;">
-                        <input type="hidden" name="status" value="rejected">
-                        <button type="submit" class="btn btn-red">Reject</button>
-                    </form>
                 </li>
             {% endfor %}
         </ul>

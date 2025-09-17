@@ -1,23 +1,26 @@
 
 {% extends "base.html" %}
+
+{% block title %}Signup{% endblock %}
+
 {% block content %}
-<div class="card">
-    <h2>📝 Create an Account</h2>
+  <h2>📝 Signup</h2>
 
-    {% if error %}
-        <p style="color: red;">{{ error }}</p>
-    {% endif %}
+  {% if error %}
+    <p style="color: red;">{{ error }}</p>
+  {% endif %}
 
-    <form method="POST" class="form">
-        <label>Email</label>
-        <input type="email" name="email" required>
+  <form method="post">
+    <label>Email:</label><br>
+    <input type="email" name="email" required><br><br>
 
-        <label>Password</label>
-        <input type="password" name="password" required>
+    <label>Password:</label><br>
+    <input type="password" name="password" required><br><br>
 
-        <button type="submit" class="btn btn-green">Sign Up</button>
-    </form>
+    <button type="submit">✅ Sign Up</button>
+  </form>
 
-    <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
-</div>
+  <p>
+    Already have an account? <a href="/login">🔐 Login here</a>
+  </p>
 {% endblock %}
