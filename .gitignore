@@ -1,16 +1,14 @@
 
-# Ignore database files
-*.db
-instance/
+# Environment
+.env
+
+# Virtual environment
+venv/
 
 # Python cache
 __pycache__/
 *.pyc
-*.pyo
 
-# Virtual environment
-venv/
-.env/
-
-# Mac system files
-.DS_Store
+# SQLite DB
+instance/
+users.db
