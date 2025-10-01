@@ -1,0 +1,28 @@
+
+{% extends "base.html" %}
+
+{% block title %}Update Profile{% endblock %}
+
+{% block content %}
+  <h2>✏️ Update Profile</h2>
+
+  <form method="post">
+    <label>Name:</label><br>
+    <input type="text" name="name" value="{{ user.name }}"><br><br>
+
+    <label>Phone:</label><br>
+    <input type="text" name="phone" value="{{ user.phone }}"><br><br>
+
+    <label>Bio:</label><br>
+    <textarea name="bio" rows="4" cols="40">{{ user.bio }}</textarea><br><br>
+
+    <label>New Password (optional):</label><br>
+    <input type="password" name="password" placeholder="Enter new password"><br><br>
+
+    <button type="submit">💾 Save</button>
+  </form>
+
+  <p>
+    <a href="/profile">👤 Back to Profile</a>
+  </p>
+{% endblock %}
