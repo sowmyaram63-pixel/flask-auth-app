@@ -1,0 +1,135 @@
+
+{% extends "base.html" %}
+{% block content %}
+<div class="form-container">
+  <h2>✏️ Update Profile</h2>
+
+  <form method="POST" enctype="multipart/form-data" class="update-form">
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" name="name" value="{{ user.name or '' }}" required>
+    </div>
+
+    <div class="form-group">
+      <label>Phone</label>
+      <input type="text" name="phone" value="{{ user.phone or '' }}">
+    </div>
+
+    <div class="form-group">
+      <label>Bio</label>
+      <textarea name="bio">{{ user.bio or '' }}</textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Current Avatar</label><br>
+      {% if user.avatar_url %}
+        <img src="{{ user.avatar_url }}" alt="Avatar" class="avatar-preview">
+      {% else %}
+        <span class="no-avatar">No avatar set</span>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      <label>Upload New Avatar</label>
+      <input type="file" name="avatar_file" accept="image/*">
+    </div>
+
+    <div class="form-group">
+      <label>Or Avatar URL</label>
+      <input type="text" name="avatar_url" placeholder="https://example.com/avatar.png" value="">
+    </div>
+
+    <div class="form-group checkbox-group">
+     <input type="checkbox" id="remove_avatar" name="remove_avatar">
+     <label for="remove_avatar">Remove current avatar</label>
+    </div>
+
+    <div class="form-group">
+      <label>New Password (leave blank to keep current)</label>
+      <input type="password" name="password">
+    </div>
+
+    <button type="submit" class="btn save-btn">💾 Save Changes</button>
+    <a href="{{ url_for('profile') }}" class="btn cancel-btn">Cancel</a>
+  </form>
+</div>
+
+<style>
+.form-container {
+  max-width: 500px;
+  margin: 40px auto;
+  padding: 25px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+h2 {
+  margin-bottom: 20px;
+  text-align: center;
+}
+.form-group {
+  margin-bottom: 15px;
+}
+.form-group label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+}
+input, textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+textarea {
+  resize: vertical;
+  height: 80px;
+}
+.avatar-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ccc;
+}
+.no-avatar {
+  font-size: 14px;
+  color: #777;
+}
+.btn {
+  display: inline-block;
+  padding: 10px 16px;
+  margin-top: 10px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+.save-btn {
+  background: #4cafef;
+  color: white;
+  border: none;
+}
+.cancel-btn {
+  background: #f44336;
+  color: white;
+  margin-left: 10px;
+}
+.btn:hover {
+  opacity: 0.85;
+}
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+
+
+
+</style>
+{% endblock %}

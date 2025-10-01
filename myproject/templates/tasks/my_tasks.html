@@ -1,0 +1,78 @@
+
+{% extends "base.html" %}
+{% block content %}
+<div class="tasks-container">
+    <div class="tasks-header">
+        <h2>My Tasks</h2>
+        <!-- ✅ Single Add Task Button -->
+        <button class="btn btn-primary" onclick="openTaskModal()">+ Add Task</button>
+    </div>
+
+    <!-- ✅ Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeTaskModal()">&times;</span>
+            <h3>Create Task</h3>
+            <form method="POST" action="{{ url_for('create_task') }}">
+                <input type="text" name="title" placeholder="Task title" required>
+                <textarea name="description" placeholder="Description"></textarea>
+                <input type="date" name="due_date" required>
+
+                <select name="project_id" required>
+                    <option value="">-- Select Project --</option>
+                    {% for project in projects %}
+                        <option value="{{ project.id }}">{{ project.name }}</option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit" class="btn btn-success">Save</button>
+                <button type="button" class="btn btn-secondary" onclick="closeTaskModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ✅ Flat List of Tasks -->
+    <div class="task-list">
+        {% for task in tasks %}
+            <div class="task-card {% if task.status == 'Done' %}completed{% endif %}">
+                <form method="POST" action="{{ url_for('update_task_ajax', task_id=task.id) }}" class="complete-form">
+                    <input type="hidden" name="status" value="{{ 'To Do' if task.status == 'Done' else 'Done' }}">
+                    <button type="submit" class="complete-btn">
+                        {% if task.status == 'Done' %}
+                            ✅
+                        {% else %}
+                            ⬜
+                        {% endif %}
+                    </button>
+                </form>
+                <div class="task-details">
+                    <strong>{{ task.title }}</strong><br>
+                    <small>Due: {{ task.due_date }}</small><br>
+                    <p>{{ task.description }}</p>
+                </div>
+            </div>
+        {% else %}
+            <p class="empty">No tasks yet</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- ✅ JavaScript -->
+<script>
+function openTaskModal() {
+    document.getElementById("taskModal").style.display = "block";
+}
+
+function closeTaskModal() {
+    document.getElementById("taskModal").style.display = "none";
+}
+
+window.onclick = function(event) {
+    let modal = document.getElementById("taskModal");
+    if (event.target === modal) {
+        modal.style.display = "none";
+    }
+}
+</script>
+
+{% endblock %}

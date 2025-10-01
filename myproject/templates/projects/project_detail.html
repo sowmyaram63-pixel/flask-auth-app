@@ -1,0 +1,29 @@
+
+{% extends "base.html" %}
+{% block content %}
+<h2>📌 {{ project.title }}</h2>
+<p>{{ project.description }}</p>
+
+<a href="{{ url_for('create_task', project_id=project.id) }}" class="btn">➕ Add Task</a>
+
+<ul>
+  {% for task in tasks %}
+    <li>
+      <strong>{{ task.title }}</strong> - {{ task.status }}
+      <br>
+      {{ task.description }}
+      {% if task.due_date %}
+        <br><small>Due: {{ task.due_date.strftime('%Y-%m-%d') }}</small>
+      {% endif %}
+      <br>
+      <a href="{{ url_for('update_task', task_id=task.id) }}">✏️ Edit</a>
+      <form action="{{ url_for('delete_task', task_id=task.id) }}" method="POST" style="display:inline;">
+        <button type="submit" class="btn btn-danger">🗑 Delete</button>
+      </form>
+
+    </li>
+  {% else %}
+    <p>No tasks yet. <a href="{{ url_for('create_task', project_id=project.id) }}">Add one</a>.</p>
+  {% endfor %}
+</ul>
+{% endblock %}
