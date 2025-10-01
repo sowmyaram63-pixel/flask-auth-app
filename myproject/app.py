@@ -74,9 +74,6 @@ google = oauth.register(
 )
 
 
-
-
-
 def add_notification(user_id, message):
     notif = Notification(user_id=user_id, message=message)
     db.session.add(notif)
@@ -423,6 +420,19 @@ def project_detail(project_id):
 
 from datetime import datetime
 
+
+@app.route("/my_tasks", methods=["GET", "POST"])
+def my_tasks():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    view = request.args.get("view", "list")
+    tasks = Task.query.filter_by(assignee_id=session["user_id"]).all()
+    users = User.query.all()
+
+    return render_template("tasks/my_tasks.html", tasks=tasks, users=users, view=view)
+
+
 @app.route("/create_task", methods=["POST"])
 def create_task():
     title = request.form["title"]
@@ -515,40 +525,25 @@ def move_task(task_id):
     db.session.commit()
     return jsonify({"ok": True, "task_id": task.id, "status": task.status})
 
-from flask import jsonify
 
-@app.route('/tasks/<int:task_id>/details')
 @app.route("/task/<int:task_id>/details")
 def task_details(task_id):
     task = Task.query.get_or_404(task_id)
+    users = User.query.all()
     return jsonify({
-       
         "id": task.id,
         "title": task.title,
-        "description": task.description,
+        "assignee": {
+            "id": task.assignee.id if task.assignee else None,
+            "name": task.assignee.name if task.assignee else "Unassigned"
+        },
         "status": task.status,
         "due_date": task.due_date.strftime("%Y-%m-%d") if task.due_date else None,
-        "assignee": task.assignee.name if task.assignee else None
+        "description": task.description or "",
+        "users": [{"id": u.id, "name": u.name or u.email} for u in users]  # ✅ dropdown list
     })
 
 
-
-@app.route("/my_tasks", methods=["GET", "POST"])
-def my_tasks():
-    if "user_id" not in session:
-        return redirect(url_for("login"))
-
-    tasks = Task.query.filter_by(assignee_id=session["user_id"]).all()
-    projects = Project.query.all()   # ✅ make sure to include this
-
-    view = request.args.get("view", "board")
-
-    return render_template(
-        "tasks/my_tasks.html",
-        tasks=tasks,
-        projects=projects,   # ✅ passing projects
-        view=view
-    )
 
 # app.py
 
@@ -560,31 +555,25 @@ def update_task_ajax(task_id):
         return jsonify({"error": "unauthorized"}), 401
 
     data = request.get_json(force=True)
-    task = db.session.get(Task, task_id)
-    if not task:
-        return jsonify({"error": "not found"}), 404
+    task = Task.query.get_or_404(task_id)
 
-    # update fields if provided
     if "title" in data:
         task.title = data["title"].strip()
     if "description" in data:
         task.description = data["description"].strip()
-    if "status" in data:
-        if data["status"] in ("todo", "in-progress", "done"):
-            task.status = data["status"]
-    if "due_date" in data:
-        due = data["due_date"] or None
-        if due:
-            try:
-                # expected YYYY-MM-DD
-                task.due_date = datetime.strptime(due, "%Y-%m-%d").date()
-            except Exception:
-                return jsonify({"error": "invalid due_date format"}), 400
-        else:
-            task.due_date = None
+    if "status" in data and data["status"] in ("todo", "in-progress", "done"):
+        task.status = data["status"]
+    if "due_date" in data and data["due_date"]:
+        try:
+            task.due_date = datetime.strptime(data["due_date"], "%Y-%m-%d").date()
+        except:
+            return jsonify({"error": "invalid date"}), 400
+    if "assignee_id" in data:
+        task.assignee_id = int(data["assignee_id"]) if data["assignee_id"] else None
 
     db.session.commit()
     return jsonify({"ok": True})
+
 
 @app.route("/tasks/<int:task_id>/delete", methods=["POST"])
 def delete_task(task_id):

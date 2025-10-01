@@ -4,11 +4,10 @@
 <div class="tasks-container">
     <div class="tasks-header">
         <h2>My Tasks</h2>
-        <!-- ✅ Single Add Task Button -->
         <button class="btn btn-primary" onclick="openTaskModal()">+ Add Task</button>
     </div>
 
-    <!-- ✅ Modal -->
+    <!-- ✅ Modal for new task -->
     <div id="taskModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeTaskModal()">&times;</span>
@@ -17,14 +16,12 @@
                 <input type="text" name="title" placeholder="Task title" required>
                 <textarea name="description" placeholder="Description"></textarea>
                 <input type="date" name="due_date" required>
-
                 <select name="project_id" required>
                     <option value="">-- Select Project --</option>
                     {% for project in projects %}
-                        <option value="{{ project.id }}">{{ project.name }}</option>
+                        <option value="{{ project.id }}">{{ project.title }}</option>
                     {% endfor %}
                 </select>
-
                 <button type="submit" class="btn btn-success">Save</button>
                 <button type="button" class="btn btn-secondary" onclick="closeTaskModal()">Cancel</button>
             </form>
@@ -34,45 +31,149 @@
     <!-- ✅ Flat List of Tasks -->
     <div class="task-list">
         {% for task in tasks %}
-            <div class="task-card {% if task.status == 'Done' %}completed{% endif %}">
-                <form method="POST" action="{{ url_for('update_task_ajax', task_id=task.id) }}" class="complete-form">
-                    <input type="hidden" name="status" value="{{ 'To Do' if task.status == 'Done' else 'Done' }}">
-                    <button type="submit" class="complete-btn">
-                        {% if task.status == 'Done' %}
-                            ✅
-                        {% else %}
-                            ⬜
-                        {% endif %}
-                    </button>
-                </form>
-                <div class="task-details">
-                    <strong>{{ task.title }}</strong><br>
-                    <small>Due: {{ task.due_date }}</small><br>
-                    <p>{{ task.description }}</p>
-                </div>
-            </div>
+        <div class="task-card" onclick="openTaskDetails({{ task.id }})">
+            <h4>{{ task.title }}</h4>
+            <p>{{ task.status }}</p>
+        </div>
         {% else %}
-            <p class="empty">No tasks yet</p>
+        <p>No tasks yet.</p>
         {% endfor %}
     </div>
 </div>
 
-<!-- ✅ JavaScript -->
+<!-- ✅ Slide-in Task Details Panel -->
+<div id="taskDetailsPanel" class="task-details-panel">
+  <button id="closePanel" class="close-btn">&times;</button>
+  <h3>
+    <input type="text" id="taskTitle" />
+  </h3>
+
+  <p><strong>Assignee:</strong> 
+    <select id="taskAssignee"></select>
+  </p>
+
+  <p><strong>Status:</strong> 
+    <select id="taskStatus">
+      <option value="todo">To Do</option>
+      <option value="in-progress">In Progress</option>
+      <option value="done">Done</option>
+    </select>
+  </p>
+
+  <p><strong>Due Date:</strong> 
+    <input type="date" id="taskDueDate" />
+  </p>
+
+  <p><strong>Description:</strong></p>
+  <textarea id="taskDescription"></textarea>
+
+  <button class="btn btn-success" onclick="saveTaskDetails()">Save</button>
+</div>
+
+<style>
+/* ✅ Side Panel Styling */
+.task-details-panel {
+  position: fixed;
+  top: 0;
+  right: -400px; /* Hidden initially */
+  width: 400px;
+  height: 100%;
+  background: #fff;
+  box-shadow: -2px 0 10px rgba(0,0,0,0.3);
+  padding: 20px;
+  overflow-y: auto;
+  transition: right 0.3s ease;
+  z-index: 1000;
+}
+
+.task-details-panel.open {
+  right: 0; /* Slide into view */
+}
+
+.close-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 20px;
+}
+</style>
+
 <script>
 function openTaskModal() {
-    document.getElementById("taskModal").style.display = "block";
+  document.getElementById("taskModal").style.display = "block";
 }
-
 function closeTaskModal() {
-    document.getElementById("taskModal").style.display = "none";
+  document.getElementById("taskModal").style.display = "none";
+}
+let currentTaskId = null;
+// ✅ Fetch Task Details & Open Panel
+function openTaskDetails(taskId) {
+  fetch(`/task/${taskId}/details`)
+    .then(res => res.json())
+    .then(data => {
+      currentTaskId = data.id;
+
+      // Fill values
+      document.getElementById("taskTitle").value = data.title;
+
+      // Populate assignee dropdown
+      const assigneeSelect = document.getElementById("taskAssignee");
+      assigneeSelect.innerHTML = "";
+      data.users.forEach(user => {
+        let opt = document.createElement("option");
+        opt.value = user.id;
+        opt.textContent = user.name;
+        if (user.id === data.assignee.id) opt.selected = true;
+        assigneeSelect.appendChild(opt);
+      });
+
+      document.getElementById("taskStatus").value = data.status;
+      document.getElementById("taskDueDate").value = data.due_date || "";
+      document.getElementById("taskDescription").value = data.description;
+
+      document.getElementById("taskDetailsPanel").classList.add("open");
+    });
 }
 
-window.onclick = function(event) {
-    let modal = document.getElementById("taskModal");
-    if (event.target === modal) {
-        modal.style.display = "none";
+function saveTaskDetails() {
+  if (!currentTaskId) return;
+
+  const payload = {
+    title: document.getElementById("taskTitle").value,
+    assignee_id: document.getElementById("taskAssignee").value,
+    status: document.getElementById("taskStatus").value,
+    due_date: document.getElementById("taskDueDate").value,
+    description: document.getElementById("taskDescription").value
+  };
+
+  fetch(`/tasks/${currentTaskId}/update`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.ok) {
+      alert("Task updated!");
+      document.getElementById("taskDetailsPanel").classList.remove("open");
+      location.reload(); // refresh to show updated values
     }
+  });
 }
-</script>
 
+// ✅ Close Panel
+document.getElementById("closePanel").addEventListener("click", () => {
+  document.getElementById("taskDetailsPanel").classList.remove("open");
+});
+
+// ✅ Close panel if clicked outside
+document.addEventListener("click", (e) => {
+  const panel = document.getElementById("taskDetailsPanel");
+  if (panel.classList.contains("open") && !panel.contains(e.target) && !e.target.closest(".task-card")) {
+    panel.classList.remove("open");
+  }
+});
+</script>
 {% endblock %}

@@ -39,12 +39,15 @@ class Project(db.Model):
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(150), nullable=False)
-    description = db.Column(db.Text)
-    status = db.Column(db.String(20), default="todo")  # todo/in-progress/done
-    due_date = db.Column(db.Date)
-    project_id = db.Column(db.Integer, db.ForeignKey("project.id"))
-    assignee_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    created_at = db.Column(db.DateTime, default=db.func.now())
+    description = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(50), default="todo")
+    due_date = db.Column(db.Date, nullable=True)
+
+    project_id = db.Column(db.Integer, db.ForeignKey("project.id"), nullable=False)
+    assignee_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+
+    # ✅ Add relationship so you can use task.assignee
+    assignee = db.relationship("User", backref="tasks", lazy=True)
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)

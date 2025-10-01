@@ -673,28 +673,4 @@ a.logout-btn { background-color: #f44336; }
   font-size: 20px;
   cursor: pointer;
 }
-.task-details-panel {
-  position: fixed;
-  top: 60px;
-  right: 0;
-  width: 350px;
-  height: 100%;
-  background: #fff;
-  border-left: 1px solid #ddd;
-  box-shadow: -2px 0 5px rgba(0,0,0,0.1);
-  padding: 20px;
-  overflow-y: auto;
-  transition: transform 0.3s ease;
-}
 
-.task-details-panel.hidden {
-  transform: translateX(100%);
-}
-
-.task-details-panel .close-btn {
-  background: none;
-  border: none;
-  font-size: 20px;
-  float: right;
-  cursor: pointer;
-}
