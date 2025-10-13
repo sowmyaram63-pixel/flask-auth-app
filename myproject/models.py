@@ -1,59 +1,86 @@
 
 from extensions import db
+from datetime import datetime
 
 class User(db.Model):
-    __tablename__ = "user"   # table name
+    __tablename__ = "user"
 
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(200), nullable=False)
     name = db.Column(db.String(100))
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(200))
     phone = db.Column(db.String(20))
     bio = db.Column(db.Text)
-    avatar_url = db.Column(db.String(255))  # new column for profile pictures
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "email": self.email,
-            "name": self.name,
-            "phone": self.phone,
-            "bio": self.bio,
-            "avatar_url": self.avatar_url
-        }
+    avatar_url = db.Column(db.String(300))
+    role = db.Column(db.String(20), default="employee") 
+    
+
+    # Relationships
+   
+
+    notifications = db.relationship("Notification", backref="user", lazy=True)
+
+    def __repr__(self):
+        return f"<User {self.email}>"
+    
 class Connection(db.Model):
+    __tablename__ = "connection"
+
     id = db.Column(db.Integer, primary_key=True)
-    from_user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    to_user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    status = db.Column(db.String(20))  # 'pending', 'accepted', 'rejected'
+    from_user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    to_user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    status = db.Column(db.String(20), default="pending")
+
+    def __repr__(self):
+        return f"<Connection {self.from_user_id} -> {self.to_user_id} ({self.status})>"
+
 
 class Project(db.Model):
+    __tablename__ = "project"
+
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.Text)
-    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    created_at = db.Column(db.DateTime, default=db.func.now())
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    tasks = db.relationship("Task", backref="project", lazy=True)
+    
 
+    def __repr__(self):
+        return f"<Project {self.title}>"
+    
 
 class Task(db.Model):
+    __tablename__ = "task"
+
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(150), nullable=False)
-    description = db.Column(db.Text, nullable=True)
+    description = db.Column(db.Text)
     status = db.Column(db.String(50), default="todo")
-    due_date = db.Column(db.Date, nullable=True)
+    due_date = db.Column(db.Date)
 
-    project_id = db.Column(db.Integer, db.ForeignKey("project.id"), nullable=False)
-    assignee_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    # ✅ Assignee
+    assignee_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    assignee = db.relationship("User", foreign_keys=[assignee_id], backref="assigned_tasks")
 
-    # ✅ Add relationship so you can use task.assignee
-    assignee = db.relationship("User", backref="tasks", lazy=True)
+    # ✅ Assigned by (the person who created/assigned)
+    assigned_by_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    assigned_by = db.relationship("User", foreign_keys=[assigned_by_id], backref="created_tasks")
+
+    project_id = db.Column(db.Integer, db.ForeignKey("project.id"))
+    project = db.relationship("Project", backref="tasks")
+   
+    def __repr__(self):
+        return f"<Task {self.title} ({self.status})>"
+
 
 class Notification(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    message = db.Column(db.String(255), nullable=False)
-    is_read = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=db.func.now())
+    __tablename__ = "notification"
 
-    user = db.relationship("User", backref="notifications")
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Notification {self.user_id}: {self.message[:20]}...>"

@@ -105,15 +105,20 @@ def signup():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        email = request.form["email"]
-        password = request.form["password"]
-        user = User.query.filter_by(email=email).first()
-        if user and check_password_hash(user.password, password):
-            session["user_id"] = user.id
-            return redirect(url_for("profile"))
-        return render_template("auth/login.html",error="Invalid credentials")
-    return render_template("auth/login.html",)
+        email = request.form.get("email")
+        password = request.form.get("password")
 
+        user = User.query.filter_by(email=email).first()
+        if user and user.password == password:
+            session["user_id"] = user.id
+            flash("Logged in successfully!", "success")
+            return redirect(url_for("my_tasks"))
+        else:
+            flash("Invalid email or password.", "danger")
+            return render_template("auth/login.html")
+
+    # ✅ Return the template if it's a GET request
+    return render_template("auth/login.html")
 
 
 @app.route("/profile")
@@ -382,8 +387,10 @@ def projects():
     if "user_id" not in session:
         return redirect(url_for("login"))
 
-    my_projects = Project.query.filter_by(owner_id=session["user_id"]).all()
-    return render_template("projects/projects.html", projects=my_projects)
+    user = User.query.get(session["user_id"])
+    my_projects = Project.query.filter_by(owner_id=user.id).all()
+
+    return render_template("projects/projects.html", projects=my_projects, user=user)
 
 
 @app.route("/projects/create", methods=["GET", "POST"])
@@ -403,15 +410,74 @@ def create_project():
 
     return render_template("projects/create_project.html")
 
+@app.route("/projects/<int:project_id>/tasks_panel")
+def project_tasks_panel(project_id):
+    if "user_id" not in session:
+        return jsonify({"error": "unauthorized"}), 401
+
+    project = Project.query.get_or_404(project_id)
+    tasks = Task.query.filter_by(project_id=project.id).all()
+    users = User.query.all()
+
+    # Return an HTML snippet to insert dynamically
+    return render_template("tasks/project_tasks_panel.html", project=project, tasks=tasks, users=users)
 
 @app.route("/projects/<int:project_id>")
 def project_detail(project_id):
     if "user_id" not in session:
         return redirect(url_for("login"))
 
+    user = User.query.get(session["user_id"])         
     project = Project.query.get_or_404(project_id)
     tasks = Task.query.filter_by(project_id=project.id).all()
-    return render_template("projects/project_detail.html", project=project, tasks=tasks)
+    users = User.query.all()                          
+
+    return render_template(
+        "projects/project_detail.html",
+        user=user,                                    
+        project=project,
+        tasks=tasks,
+        users=users
+    )
+
+
+@app.route("/projects/<int:project_id>/add_task", methods=["GET", "POST"])
+def add_task_to_project(project_id):
+    if "user_id" not in session:
+        return jsonify({"error": "Not logged in"}), 403
+
+    project = Project.query.get_or_404(project_id)
+    users = User.query.all()
+
+    if request.method == "POST":
+        title = request.form.get("title")
+        description = request.form.get("description")
+        assignee_id = request.form.get("assignee_id")or None
+        due_date_str = request.form.get("due_date")
+
+        from datetime import datetime
+        due_date = datetime.strptime(due_date_str, "%Y-%m-%d").date() if due_date_str else None
+
+        task = Task(
+            title=title,
+            description=description,
+            project_id=project.id,
+            assignee_id=assignee_id if assignee_id else None,
+            due_date=due_date,
+            status="todo"
+        )
+        db.session.add(task)
+        db.session.commit()
+
+        return jsonify({
+          "task": {
+            "id": task.id,
+            "title": task.title,
+            "description": task.description,
+            "assignee": task.assignee.name if task.assignee else "Unassigned",
+            "project": project.title
+        }
+    })
 
 
 # -----------------------
@@ -421,75 +487,96 @@ def project_detail(project_id):
 from datetime import datetime
 
 
-@app.route("/my_tasks", methods=["GET", "POST"])
+@app.route("/my_tasks")
 def my_tasks():
     if "user_id" not in session:
         return redirect(url_for("login"))
 
-    view = request.args.get("view", "list")
-    tasks = Task.query.filter_by(assignee_id=session["user_id"]).all()
+    user = User.query.get(session["user_id"])
+    if not user:
+        flash("User not found")
+        return redirect(url_for("login"))
+
+    if user.role == "admin":
+        tasks = Task.query.all()
+    else:
+        tasks = Task.query.filter_by(assignee_id=user.id).all()
+
     users = User.query.all()
+    return render_template("tasks/my_tasks.html", user=user, tasks=tasks, users=users)
 
-    return render_template("tasks/my_tasks.html", tasks=tasks, users=users, view=view)
+
+from flask import jsonify
 
 
-@app.route("/create_task", methods=["POST"])
-def create_task():
-    title = request.form["title"]
-    description = request.form["description"]
-    due_date_str = request.form["due_date"]
-    project_id = request.form["project_id"]
-    status = request.form["status"]
 
-    # ✅ Convert string -> Python date
-    due_date = datetime.strptime(due_date_str, "%Y-%m-%d").date()
+
+@app.route("/add_task", methods=["POST"])
+def add_task():
+    if "user_id" not in session:
+        return jsonify({"error": "Not logged in"}), 403
+
+    title = request.form.get("title")
+    description = request.form.get("description")
+    assignee_id = request.form.get("assignee_id")
+   
+
+    due_date = request.form.get("due_date")
 
     new_task = Task(
         title=title,
         description=description,
-        due_date=due_date,   # ✅ now it's a proper date object
-        project_id=project_id,
-        status=status,
-        assignee_id=session.get("user_id")
+        assignee_id=assignee_id if assignee_id else None,
+        due_date=datetime.strptime(due_date, "%Y-%m-%d").date() if due_date else None,
+        status="todo",
+        assigned_by_id =session["user_id"]
     )
 
     db.session.add(new_task)
     db.session.commit()
 
+    assignee_name = new_task.assignee.name if new_task.assignee else "Unassigned"
+
+    return jsonify({
+        "task": {
+            "id": new_task.id,
+            "title": new_task.title,
+            "description": new_task.description,
+            "assignee": assignee_name
+        }
+    })
+
+
+
+@app.route("/update_task/<int:task_id>", methods=["POST"])
+def update_task(task_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    task = Task.query.get_or_404(task_id)
+    user = User.query.get(session["user_id"])
+
+    
+    if user.role != "admin" and task.assignee_id != user.id:
+        flash("You can only edit your assigned tasks.", "danger")
+        return redirect(url_for("my_tasks"))
+
+    task.title = request.form.get("title", task.title)
+    task.description = request.form.get("description", task.description)
+    task.status = request.form.get("status", task.status)
+
+   
+    if user.role == "admin":
+        task.assignee_id = request.form.get("assignee_id") or None
+        due_date_str = request.form.get("due_date")
+        if due_date_str:
+            task.due_date = datetime.strptime(due_date_str, "%Y-%m-%d").date()
+
+    db.session.commit()
+    flash("Task updated successfully!", "success")
     return redirect(url_for("my_tasks"))
 
 
-
-
-
-@app.route("/tasks/<int:task_id>/update", methods=["GET", "POST"])
-@app.route('/tasks/<int:task_id>/update', methods=['POST'])
-def update_task(task_id):
-    data = request.get_json()
-    task = Task.query.get_or_404(task_id)
-
-    if "title" in data:
-        task.title = data["title"]
-    if "description" in data:
-        task.description = data["description"]
-    if "status" in data:
-        task.status = data["status"]
-    if "due_date" in data:
-        from datetime import datetime
-        try:
-            task.due_date = datetime.strptime(data["due_date"], "%Y-%m-%d").date()
-        except:
-            pass  
-
-    db.session.commit()
-    return jsonify({
-        "success": True,
-        "id": task.id,
-        "title": task.title,
-        "description": task.description,
-        "status": task.status,
-        "due_date": task.due_date.strftime("%Y-%m-%d") if task.due_date else None
-    })
 
 @app.route("/task/<int:task_id>/json")
 def task_json(task_id):
@@ -517,9 +604,7 @@ def move_task(task_id):
     if not task:
         return jsonify({"error": "not found"}), 404
 
-    # optional: check permission
-    # if task.assignee_id != session["user_id"]:
-    #     return jsonify({"error":"forbidden"}),403
+   
 
     task.status = new_status
     db.session.commit()
@@ -529,18 +614,22 @@ def move_task(task_id):
 @app.route("/task/<int:task_id>/details")
 def task_details(task_id):
     task = Task.query.get_or_404(task_id)
-    users = User.query.all()
+    assignee = None
+
+    # Handle safely (no error if relationship missing)
+    if hasattr(task, "assignee_id") and task.assignee_id:
+        user = User.query.get(task.assignee_id)
+        assignee = user.name if user and user.name else user.email if user else "Unassigned"
+    else:
+        assignee = "Unassigned"
+
     return jsonify({
         "id": task.id,
         "title": task.title,
-        "assignee": {
-            "id": task.assignee.id if task.assignee else None,
-            "name": task.assignee.name if task.assignee else "Unassigned"
-        },
-        "status": task.status,
-        "due_date": task.due_date.strftime("%Y-%m-%d") if task.due_date else None,
-        "description": task.description or "",
-        "users": [{"id": u.id, "name": u.name or u.email} for u in users]  # ✅ dropdown list
+        "assignee": assignee,
+        "status": task.status or "Not set",
+        "due_date": task.due_date.strftime("%Y-%m-%d") if task.due_date else "No due date",
+        "description": task.description or "No description"
     })
 
 
@@ -575,23 +664,47 @@ def update_task_ajax(task_id):
     return jsonify({"ok": True})
 
 
-@app.route("/tasks/<int:task_id>/delete", methods=["POST"])
+@app.route("/delete_project/<int:project_id>", methods=["POST"])
+def delete_project(project_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    project = Project.query.get_or_404(project_id)
+    user = User.query.get(session["user_id"])
+
+    # ✅ Only the owner or admin can delete
+    if user.role != "admin" and project.owner_id != user.id:
+        flash("You don't have permission to delete this project.", "danger")
+        return redirect(url_for("projects"))
+
+    # Delete all tasks related to this project
+    Task.query.filter_by(project_id=project.id).delete()
+
+    # Delete the project itself
+    db.session.delete(project)
+    db.session.commit()
+
+    flash("Project deleted successfully!", "success")
+    return ("", 204)  # empty response for JS fetch()
+
+
+@app.route("/delete_task/<int:task_id>", methods=["POST"])
 def delete_task(task_id):
     if "user_id" not in session:
         return redirect(url_for("login"))
 
     task = Task.query.get_or_404(task_id)
+    user = User.query.get(session["user_id"])
 
-    # Only the assignee or project owner can delete
-    project = Project.query.get(task.project_id)
-    if task.assignee_id != session["user_id"] and project.owner_id != session["user_id"]:
-        flash("You don't have permission to delete this task.", "error")
-        return redirect(url_for("project_detail", project_id=task.project_id))
+    
+    if user.role != "admin" and task.assignee_id != user.id:
+        flash("You don't have permission to delete this task.", "danger")
+        return redirect(url_for("my_tasks"))
 
     db.session.delete(task)
     db.session.commit()
     flash("Task deleted successfully!", "success")
-    return redirect(url_for("project_detail", project_id=task.project_id))
+    return ("", 204)  
 
 
 @app.route("/tasks/create", methods=["GET", "POST"])
@@ -616,6 +729,7 @@ def create_task_from_my_tasks():
             project_id=project_id,
             assignee_id=session["user_id"],
             due_date=due_date
+
         )
         db.session.add(task)
         db.session.commit()
@@ -632,7 +746,6 @@ def create_task_from_board():
     description = request.form.get("description")
     status = request.form.get("status")
 
-    # Create the task (not tied to project for now, can extend later)
     task = Task(
         title=title,
         description=description,
@@ -643,6 +756,43 @@ def create_task_from_board():
     db.session.commit()
 
     return redirect(url_for("my_tasks"))
+
+@app.route("/get_task/<int:task_id>")
+def get_task(task_id):
+    task = Task.query.get(task_id)
+    if not task:
+        return jsonify({"error": "Task not found"}), 404
+
+    return jsonify({
+        "id": task.id,
+        "title": task.title,
+        "description": task.description,
+        "assignee_id": task.assignee_id,
+        "due_date": task.due_date.isoformat() if task.due_date else "",
+        "status": task.status
+    })
+
+@app.route("/edit_task/<int:task_id>", methods=["GET", "POST"])
+def edit_task(task_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    task = Task.query.get_or_404(task_id)
+    user = User.query.get(session["user_id"])
+    users = User.query.all()
+
+    if request.method == "POST":
+        task.title = request.form["title"]
+        task.description = request.form["description"]
+        task.assignee_id = request.form["assigned_to"]
+        task.due_date = datetime.strptime(request.form["due_date"], "%Y-%m-%d").date()
+        task.status = request.form["status"]
+
+        db.session.commit()
+        flash("Task updated successfully!", "success")
+        return redirect(url_for("my_tasks"))
+
+    return render_template("tasks/my_tasks.html", task=task, users=users, user=user)
 
 
 @app.before_request

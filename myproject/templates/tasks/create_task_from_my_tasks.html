@@ -23,6 +23,13 @@
                 <option value="{{ project.id }}">{{ project.title }}</option>
                 {% endfor %}
             </select>
+            <select name="assignee_id" required>
+               <option value="">-- Assign to --</option>
+               {% for user in users %}
+                  <option value="{{ user.id }}">{{ user.name or user.email }}</option>
+               {% endfor %}
+            </select>
+
         </div>
 
         <div class="form-group">

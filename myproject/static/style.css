@@ -674,3 +674,29 @@ a.logout-btn { background-color: #f44336; }
   cursor: pointer;
 }
 
+.task-card {
+  background: white;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.task-card:hover {
+  transform: scale(1.01);
+}
+
+.task-card.completed {
+  background-color: #e9fbe9; /* light green */
+  border-left: 6px solid #4CAF50; /* green accent */
+  color: #2e7d32; /* dark green text */
+}
+
+.task-done {
+  background-color: #d4edda;
+  border-left: 4px solid #28a745;
+  color: #155724;
+}
+
