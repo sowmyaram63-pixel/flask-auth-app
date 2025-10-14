@@ -98,7 +98,7 @@ migrate.init_app(app, db)
 
 
 # Import models AFTER db is initialized
-from models import User, Connection, Project, Task, Notification
+from myproject.models import User, Connection, Project, Task, Notification
 
 
 # OAuth config (Google Sign-In)
