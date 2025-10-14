@@ -24,63 +24,38 @@ if os.path.exists(env_path):
 
 import json
 import requests
-def update_google_redirect_uri(ngrok_url):
+def update_google_redirect_uri():
     """Automatically updates redirect URI in Google Cloud"""
     GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
     GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
     GOOGLE_PROJECT_ID = os.getenv("GOOGLE_PROJECT_ID")  # optional if needed
 
     # New redirect URI
-    new_redirect = f"{ngrok_url}/login/google/authorized"
+    """Sets the correct redirect URI when deployed on Railway"""
+    railway_url = "https://flask-auth-app-production.up.railway.app"
+    new_redirect = f"{railway_url}/login/google/authorized"
+    print(f"✅ Using production redirect URI: {new_redirect}")
 
-    print(f"🔁 Updating Google OAuth redirect URI to: {new_redirect}")
-
-    # In practice, you would call Google API here, but since Google doesn’t allow
-    # automatic edits to OAuth credentials from code (for security), we’ll instead:
-    # 1. Update your local .env file so you can easily copy-paste to Cloud Console.
-    
     env_path = os.path.join(os.path.dirname(__file__), ".env")
-
     if os.path.exists(env_path):
         with open(env_path, "r") as f:
             lines = f.readlines()
+
+        new_lines = []
+        for line in lines:
+            if line.startswith("REDIRECT_URI="):
+                new_lines.append(f"REDIRECT_URI={new_redirect}\n")
+            else:
+                new_lines.append(line)
+
+        with open(env_path, "w") as f:
+            f.writelines(new_lines)
     else:
         print("⚠️ .env file not found — skipping redirect URI update.")
-        return
-    
-    new_lines = []
-    for line in lines:
-        if line.startswith("REDIRECT_URI="):
-            new_lines.append(f"REDIRECT_URI={new_redirect}\n")
-        else:
-            new_lines.append(line)
-    
-    if not any(line.startswith("REDIRECT_URI=") for line in new_lines):
-        new_lines.append(f"REDIRECT_URI={new_redirect}\n")
-    
-    with open(env_path, "w") as f:
-        f.writelines(new_lines)
-    
-    print("✅ .env updated with new redirect URI.")
 
 app = Flask(__name__)
 app.config['SERVER_NAME'] = 'flask-auth-app-production.up.railway.app'
-def get_ngrok_url():
-    """Fetches your current ngrok public URL"""
-    try:
-        response = requests.get("http://127.0.0.1:4040/api/tunnels")
-        data = response.json()
-        url = data["tunnels"][0]["public_url"]
-        print(f"🌐 Current ngrok URL: {url}")
-        return url
-    except Exception as e:
-        print("⚠️ Could not detect ngrok URL:", e)
-        return None
-
-# After Flask starts, update Google redirect URI
-ngrok_url = get_ngrok_url()
-if ngrok_url:
-    update_google_redirect_uri(ngrok_url)               
+update_google_redirect_uri()             
 
 def send_email(to_email, subject, body):
     message = SendGridMail(   # use aliased SendGrid class
