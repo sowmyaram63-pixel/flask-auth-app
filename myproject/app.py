@@ -64,6 +64,7 @@ def update_google_redirect_uri(ngrok_url):
     print("✅ .env updated with new redirect URI.")
 
 app = Flask(__name__)
+app.config['SERVER_NAME'] = 'flask-auth-app-production.up.railway.app'
 def get_ngrok_url():
     """Fetches your current ngrok public URL"""
     try:
