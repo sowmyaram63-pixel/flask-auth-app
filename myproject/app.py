@@ -1,22 +1,27 @@
 
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, g
-from werkzeug.security import generate_password_hash, check_password_hash
-from dotenv import load_dotenv
-from authlib.integrations.flask_client import OAuth
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail as SendGridMail
-from datetime import datetime
-from werkzeug.utils import secure_filename
+from  flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, g
+from  werkzeug.security import generate_password_hash, check_password_hash
+from  authlib.integrations.flask_client import OAuth
+from  sendgrid import SendGridAPIClient
+from  sendgrid.helpers.mail import Mail as SendGridMail
+from  datetime import datetime
+from  werkzeug.utils import secure_filename
 import secrets, os, random, time
-from flask import url_for
+
 
 
 # Import extensions
-from extensions import db, mail, migrate
+from myproject.extensions import db, mail, migrate
 # Import models AFTER db is ready
-from models import User, Connection, Project, Task, Notification
+from  myproject.models import User, Connection, Project, Task, Notification
 
-load_dotenv()   # reads .env
+from dotenv import load_dotenv  # reads .env
+# Safely load .env only if it exists
+env_path = os.path.join(os.path.dirname(__file__), ".env")
+if os.path.exists(env_path):
+    load_dotenv(env_path)
+
+
 import json
 import requests
 def update_google_redirect_uri(ngrok_url):
@@ -34,9 +39,14 @@ def update_google_redirect_uri(ngrok_url):
     # automatic edits to OAuth credentials from code (for security), we’ll instead:
     # 1. Update your local .env file so you can easily copy-paste to Cloud Console.
     
-    env_path = ".env"
-    with open(env_path, "r") as f:
-        lines = f.readlines()
+    env_path = os.path.join(os.path.dirname(__file__), ".env")
+
+    if os.path.exists(env_path):
+        with open(env_path, "r") as f:
+            lines = f.readlines()
+    else:
+        print("⚠️ .env file not found — skipping redirect URI update.")
+        return
     
     new_lines = []
     for line in lines:
@@ -70,7 +80,7 @@ def get_ngrok_url():
 ngrok_url = get_ngrok_url()
 if ngrok_url:
     update_google_redirect_uri(ngrok_url)               
-    
+
 def send_email(to_email, subject, body):
     message = SendGridMail(   # use aliased SendGrid class
         from_email=os.getenv("MAIL_FROM_EMAIL"),
