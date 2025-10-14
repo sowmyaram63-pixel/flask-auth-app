@@ -56,6 +56,9 @@ def update_google_redirect_uri():
 app = Flask(__name__)
 app.config['SERVER_NAME'] = 'flask-auth-app-production.up.railway.app'
 app.config['PREFERRED_URL_SCHEME'] = 'https'
+# Tell Flask it's behind a proxy that handles HTTPS
+from werkzeug.middleware.proxy_fix import ProxyFix
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 update_google_redirect_uri()             
 
 def send_email(to_email, subject, body):
