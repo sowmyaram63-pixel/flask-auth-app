@@ -121,6 +121,9 @@ def add_notification(user_id, message):
     db.session.add(notif)
     db.session.commit()
 
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+
 # Make sure database tables are created within app context
 with app.app_context():
     db.create_all()
