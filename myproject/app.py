@@ -55,6 +55,7 @@ def update_google_redirect_uri():
 
 app = Flask(__name__)
 app.config['SERVER_NAME'] = 'flask-auth-app-production.up.railway.app'
+app.config['PREFERRED_URL_SCHEME'] = 'https'
 update_google_redirect_uri()             
 
 def send_email(to_email, subject, body):
