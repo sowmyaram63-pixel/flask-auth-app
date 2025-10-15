@@ -52,13 +52,16 @@ def update_google_redirect_uri():
             f.writelines(new_lines)
     else:
         print("⚠️ .env file not found — skipping redirect URI update.")
+import os,sys
 
-app = Flask(__name__)
+app = Flask(__name__,template_folder=os.path.join(os.path.dirname(__file__), 'templates'),
+    static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SERVER_NAME'] = 'flask-auth-app-production.up.railway.app'
 app.config['PREFERRED_URL_SCHEME'] = 'https'
 # Tell Flask it's behind a proxy that handles HTTPS
 from werkzeug.middleware.proxy_fix import ProxyFix
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+app.config['OAUTHLIB_INSECURE_TRANSPORT'] = False
 update_google_redirect_uri()             
 
 def send_email(to_email, subject, body):
@@ -104,7 +107,15 @@ migrate.init_app(app, db)
 # Import models AFTER db is initialized
 from myproject.models import User, Connection, Project, Task, Notification
 
+import os
+from authlib.integrations.flask_client import OAuth
 
+
+if os.getenv("RAILWAY_ENVIRONMENT"):
+    REDIRECT_URI = "https://flask-auth-app-production.up.railway.app/login/google/authorized"
+else:
+    REDIRECT_URI = "http://127.0.0.1:5002/login/google/authorized"
+print("redirect uri in use:",REDIRECT_URI)
 # OAuth config (Google Sign-In)
 oauth = OAuth(app)
 google = oauth.register(
@@ -113,6 +124,7 @@ google = oauth.register(
     client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
     server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
     client_kwargs={'scope': 'openid email profile'},
+    redirect_uri=REDIRECT_URI
 )
 
 
@@ -398,6 +410,9 @@ def google_login():
     nonce = secrets.token_urlsafe(16)
     session["nonce"] = nonce  
     redirect_uri = url_for("google_authorize", _external=True)
+    print("🔍 request.url_root =", request.url_root)
+    print("🔍 redirect_uri (sent to Google) =", redirect_uri)
+    print("🔍 Configured REDIRECT_URI =", REDIRECT_URI)
     return google.authorize_redirect(redirect_uri, nonce=nonce)
 
 @app.route("/login/google/authorized")

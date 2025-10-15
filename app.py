@@ -332,6 +332,8 @@ def google_authorize():
     return redirect(url_for("profile"))
 
 
+
+
 if __name__ == "__main__":
     # Run Flask on port 5002 to avoid macOS port conflicts
     app.run(debug=True, port=5002)
