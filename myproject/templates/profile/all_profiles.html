@@ -1,0 +1,41 @@
+
+{% extends "base.html" %}
+
+{% block title %}All Profiles{% endblock %}
+
+{% block content %}
+  <h2>All Profiles</h2>
+
+  <h3>✅ Accepted</h3>
+  <ul>
+    {% for u in accepted_users %}
+      <li class="accepted">{{ u.name or u.email }}</li>
+    {% else %}
+      <li>No accepted users yet</li>
+    {% endfor %}
+  </ul>
+
+  <h3>❌ Rejected</h3>
+  <ul>
+    {% for u in rejected_users %}
+      <li class="rejected">{{ u.name or u.email }}</li>
+    {% else %}
+      <li>No rejected users yet</li>
+    {% endfor %}
+  </ul>
+
+  <h3>⏳ Pending</h3>
+  <ul>
+    {% for u in pending_users %}
+      <li class="pending">{{ u.name or u.email }}</li>
+    {% else %}
+      <li>No pending users yet</li>
+    {% endfor %}
+  </ul>
+
+  <p>
+    <a href="/search">🔍 Back to Search</a> |
+    <a href="/profile">👤 Back to Profile</a> |
+    <a href="/logout">🚪 Logout</a>
+  </p>
+{% endblock %}

@@ -1,0 +1,100 @@
+
+
+{% extends "base.html" %}
+{% block content %}
+<div class="inbox-container">
+  <h2>📩 Inbox</h2>
+
+  <form method="POST" class="mark-all-form">
+    <button type="submit" class="btn mark-btn">✅ Mark all as read</button>
+  </form>
+
+  {% if notifications %}
+    <ul class="notification-list">
+      {% for n in notifications %}
+        <li class="notification-item {% if not n.is_read %}unread{% endif %}">
+          <div class="message">{{ n.message }}</div>
+          <div class="meta">{{ n.created_at.strftime("%b %d, %Y %I:%M %p") }}</div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="empty">🎉 No notifications yet.</p>
+  {% endif %}
+</div>
+
+<style>
+.inbox-container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 25px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+h2 {
+  margin-bottom: 15px;
+  text-align: center;
+  color: #333;
+}
+
+.mark-all-form {
+  text-align: right;
+  margin-bottom: 15px;
+}
+
+.mark-btn {
+  padding: 8px 15px;
+  background: #4cafef;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.mark-btn:hover {
+  opacity: 0.85;
+}
+
+.notification-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notification-item {
+  padding: 15px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background: #f9f9f9;
+  border: 1px solid #eee;
+  transition: background 0.2s;
+}
+.notification-item:hover {
+  background: #f0f8ff;
+}
+
+.notification-item.unread {
+  border-left: 6px solid #4cafef;
+  background: #eef7ff;
+}
+
+.message {
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+
+.meta {
+  font-size: 12px;
+  color: #777;
+}
+
+.empty {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  margin-top: 20px;
+}
+</style>
+{% endblock %}
