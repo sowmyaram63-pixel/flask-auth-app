@@ -1,0 +1,275 @@
+
+/* static/style.css */
+
+body {
+    font-family: Arial, sans-serif;
+    background:#FFF9F9 ;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 600px;
+    margin: 40px auto;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0px 3px 10px rgba(0,0,0,0.1);
+}
+
+h1, h2 {
+    color: #333;
+    text-align: center;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+input, textarea, button {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button.reject {
+    background-color: #f44336;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+a {
+    color: #007BFF;
+    text-decoration: none;
+}
+a.button {
+    display: inline-block;
+    margin: 8px 6px;      /* spacing between buttons */
+    padding: 8px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+}
+
+a.edit-btn {
+    background-color: #4CAF50; /* green */
+}
+
+a.logout-btn {
+    background-color: #f44336; /* red */
+}
+.navbar {
+    
+    background: linear-gradient(90deg, #A8D8EA, #FDCEDF); /* pastel blue → pink */
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.content {
+    max-width: 600px;
+    margin: 60px auto;
+    padding: 20px;
+
+    
+}
+
+.navbar h1 {
+    font-size: 22px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* space between emoji and text */
+    font-weight: bold;
+    color: #fff; /* App title color */
+}
+
+.navbar nav {
+    display: flex;
+    gap: 20px; /* spacing between links */
+}
+
+.navbar nav a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: color 0.3s;
+}
+
+.navbar nav a:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+.card {
+    background: #FFFFFF;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+    max-width: 600px;
+    margin: 3rem auto;
+    text-align: center;
+    
+}
+
+.actions {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;      
+    gap: 12px;           
+    justify-content: center;
+}
+
+/* Button base */
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    color: #fff;
+}
+.navbar .logo {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #444;
+}
+.navbar-nav-links {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+    
+}
+.navbar .nav-links li {
+    display: inline;
+}
+
+.navbar,nav-links a {
+    text-decoration: none;
+    color: #444;
+    font-weight: 600;
+}
+
+.navbar .nav-links a:hover {
+    color: #6C5B7B; /* pastel purple hover */
+}
+
+.footer {
+    text-align: center;
+    padding: 1rem;
+    margin-top: 2rem;
+    background: #FDCEDF; /* pastel pink */
+    color: #444;
+}
+/* Google login button */
+.google-login {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.google-btn {
+    display: inline-block;
+    background: #ffffff;
+    border: 1px solid #ddd;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 14px;
+    text-decoration: none;
+    color: #444;
+    font-weight: bold;
+    margin-top: 10px;
+    transition: background 0.3s ease;
+
+}
+
+.google-btn img {
+    width: 20px;
+    height: 20px;
+}
+
+.google-btn:hover {
+    background-color: #f1f1f1;
+    box-shadow: 0 5px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Auth card */
+.auth-card {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 30px;
+    background: #fdfdfd;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* Input fields */
+.auth-card input {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0 15px 0;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+/* Primary button */
+.btn-primary {
+    background: #a3c9f9; /* pastel blue */
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+    width: 100%;
+}
+
+.btn-primary:hover {
+    background: #82b1f5;
+}
+
+/* Links */
+.extra-links {
+    margin: 15px 0;
+    font-size: 14px;
+}
+
+.extra-links a {
+    color: #6a5acd; /* pastel purple */
+    text-decoration: none;
+}
+
+.extra-links a:hover {
+    text-decoration: underline;
+}
+
+/* Different button colors */
+.btn-green { background: #28a745; }
+.btn-green:hover { background: #218838; }
+
+.btn-blue { background: #007bff; }
+.btn-blue:hover { background: #0056b3; }
+
+.btn-red { background: #dc3545; }
+.btn-red:hover { background: #b02a37; }
+
+.btn-dark { background: #343a40; }
+.btn-dark:hover { background: #1d2124; }

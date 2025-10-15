@@ -1,0 +1,66 @@
+
+<div class="task-details-root">
+  <h2 contenteditable="true" id="task-title">{{ task.title }}</h2>
+  <div class="task-field">
+    <label>Assignee:</label> {{ task.assignee_id or "—" }}
+  </div>
+
+  <div class="task-field">
+    <label>Status:</label>
+    <select id="task-status">
+      <option value="todo" {% if task.status == 'todo' %}selected{% endif %}>To Do</option>
+      <option value="in-progress" {% if task.status == 'in-progress' %}selected{% endif %}>In Progress</option>
+      <option value="done" {% if task.status == 'done' %}selected{% endif %}>Done</option>
+    </select>
+  </div>
+
+  <div class="task-field">
+    <label>Due date:</label>
+    <input id="task-due" type="date" value="{{ task.due_date or '' }}">
+  </div>
+
+  <div class="task-field">
+    <label>Description:</label>
+    <textarea id="task-desc" rows="5">{{ task.description or '' }}</textarea>
+  </div>
+
+  <div style="margin-top:12px;">
+    <button class="btn btn-blue" onclick="saveTask({{ task.id }})">Save</button>
+    <a class="btn btn-red" href="{{ url_for('update_task', task_id=task.id) }}">Full Edit</a>
+  </div>
+
+  <script>
+  async function saveTask(id){
+    const payload = {
+      title: document.getElementById('task-title').innerText.trim(),
+      status: document.getElementById('task-status').value,
+      due_date: document.getElementById('task-due').value || null,
+      description: document.getElementById('task-desc').value || ''
+    };
+    try {
+      const res = await fetch(`/tasks/${id}/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.ok) {
+        // reflect title/due back to card in board
+        const card = document.querySelector('.task-card[data-task-id="'+id+'"]');
+        if (card){
+          card.querySelector('.task-title').innerText = payload.title;
+          const meta = card.querySelector('.task-meta');
+          if(meta) meta.innerText = 'Due: ' + (payload.due_date || '—');
+        }
+        closePanel();
+      } else {
+        alert('Update failed');
+      }
+    } catch(err){
+      console.error(err);
+      alert('Error saving task');
+    }
+  }
+  </script>
+  
+</div>
