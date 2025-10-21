@@ -8,6 +8,7 @@ from  datetime import datetime
 from  werkzeug.utils import secure_filename
 import secrets, os, random, time
 
+from flask_session import Session
 
 
 # Import extensions
@@ -17,24 +18,25 @@ from  myproject.models import User, Connection, Project, Task, Notification
 
 from dotenv import load_dotenv  # reads .env
 # Safely load .env only if it exists
-env_path = os.path.join(os.path.dirname(__file__), ".env")
-if os.path.exists(env_path):
-    load_dotenv(env_path)
+
+
 
 
 import json
 import requests
 def update_google_redirect_uri():
-    """Automatically updates redirect URI in Google Cloud"""
+    """Automatically updates redirect URI in Google Cloud if needed"""
     GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
     GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
-    GOOGLE_PROJECT_ID = os.getenv("GOOGLE_PROJECT_ID")  # optional if needed
+    GOOGLE_PROJECT_ID = os.getenv("GOOGLE_PROJECT_ID")
 
-    # New redirect URI
-    """Sets the correct redirect URI when deployed on Railway"""
-    railway_url = "https://flask-auth-app-production.up.railway.app"
-    new_redirect = f"{railway_url}/login/google/authorized"
-    print(f"✅ Using production redirect URI: {new_redirect}")
+    # Determine environment
+    if "RAILWAY_ENVIRONMENT" in os.environ:
+        new_redirect = "https://flask-auth-app-production.up.railway.app/login/google/authorized"
+    else:
+        new_redirect = "http://127.0.0.1:5002/login/google/authorized"
+
+    print(f"✅ Setting redirect URI to: {new_redirect}")
 
     env_path = os.path.join(os.path.dirname(__file__), ".env")
     if os.path.exists(env_path):
@@ -51,16 +53,72 @@ def update_google_redirect_uri():
         with open(env_path, "w") as f:
             f.writelines(new_lines)
     else:
-        print("⚠️ .env file not found — skipping redirect URI update.")
+        print("⚠️ .env file not found – skipping redirect URI update.")
+import os,sys
 
-app = Flask(__name__)
-app.config['SERVER_NAME'] = 'flask-auth-app-production.up.railway.app'
+env_path = os.path.join(os.path.dirname(__file__), ".env")
+if os.path.exists(env_path):
+    load_dotenv(env_path)
+
+app = Flask(__name__,template_folder=os.path.join(os.path.dirname(__file__), 'templates'),
+    static_folder=os.path.join(os.path.dirname(__file__), 'static'))
+
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY","dev_secret_key")
+
+
+
 app.config['PREFERRED_URL_SCHEME'] = 'https'
+
+app.debug = True
+app.config['PROPAGATE_EXCEPTIONS'] = True
+
+from flask import Flask, session
+@app.route("/debug-session")
+def debug_session():
+    print("Current session:", session)
+    return f"Session content: {dict(session)}"
+
+@app.route("/test_session")
+def test_session():
+    session["foo"] = "bar"
+    print(session)  # ✅ This works
+    return "Check your console"
+
+with app.test_request_context('/'):
+    session['foo'] = 'bar'
+    print(session)  # ✅ Works temporarily outside route
+
+
+
+
+
+
+
+app.config['SESSION_COOKIE_SECURE'] =True
+app.config['SESSION_COOKIE_SAMESITE'] = "None"
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_TYPE'] = 'filesystem'   # simple persistent session for deployment
+Session(app)
+
+
+
+if "RAILWAY_ENVIRONMENT" in os.environ or "RAILWAY_STATIC_URL" in os.environ:
+    app.config["SESSION_COOKIE_SECURE"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "None"
+
+if "127.0.0.1" in os.getenv("RAILWAY_STATIC_URL", "") or "localhost" in os.getenv("RAILWAY_STATIC_URL", ""):
+    app.config["SESSION_COOKIE_SECURE"] = False
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
+app.config["SESSION_PERMANENT"] = False
 # Tell Flask it's behind a proxy that handles HTTPS
 from werkzeug.middleware.proxy_fix import ProxyFix
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+app.config['OAUTHLIB_INSECURE_TRANSPORT'] = False
 update_google_redirect_uri()             
 
+
+    
 def send_email(to_email, subject, body):
     message = SendGridMail(   # use aliased SendGrid class
         from_email=os.getenv("MAIL_FROM_EMAIL"),
@@ -84,7 +142,7 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
         
-app.secret_key = os.getenv("SECRET_KEY", "dev-secret-change-me")
+
 # SQLite database in instance folder
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", "sqlite:///users.db")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -104,16 +162,79 @@ migrate.init_app(app, db)
 # Import models AFTER db is initialized
 from myproject.models import User, Connection, Project, Task, Notification
 
+import os
+from authlib.integrations.flask_client import OAuth
 
+
+# Detect if we're running on Railway or local machine
+if "RAILWAY_ENVIRONMENT" in os.environ:
+    REDIRECT_URI = "https://flask-auth-app-production.up.railway.app/login/google/authorized"
+else:
+    #Match the actual local URL + port Flask uses
+    REDIRECT_URI = "http://127.0.0.1:5002/login/google/authorized"
+
+print("Final redirect URI being sent to Google:", REDIRECT_URI)
 # OAuth config (Google Sign-In)
+from authlib.integrations.flask_client import OAuth
+
 oauth = OAuth(app)
+
 google = oauth.register(
     name='google',
     client_id=os.getenv("GOOGLE_CLIENT_ID"),
     client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
-    server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
-    client_kwargs={'scope': 'openid email profile'},
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={
+        'scope': 'openid email profile'
+    }
 )
+
+@app.route("/login/google")
+def google_login():
+    print(f"🚀 Redirecting user to Google OAuth — Redirect URI: {REDIRECT_URI}")
+    return google.authorize_redirect(redirect_uri=REDIRECT_URI)
+
+
+
+@app.route("/login/google/authorized")
+def google_authorize():
+    print("🔍 Request args:", request.args)
+
+    # Step 1: Validate request
+    if "code" not in request.args:
+        return "❌ Missing code parameter", 400
+
+    # Step 2: Prevent duplicate callbacks
+    if "user" in session:
+        print("⚠️ Duplicate callback ignored for:", session["user"]["email"])
+        return redirect(url_for("dashboard"))  # redirect to dashboard if already logged in
+
+    try:
+        # Step 3: Exchange code for token
+        token = google.authorize_access_token()
+        print("🔹 Token received:", token)
+
+        # Step 4: Parse user info
+        user_info = google.parse_id_token(token, nonce=None)
+        print("👤 User info:", user_info)
+
+        # Step 5: Save user to session
+        session["user"] = {
+            "id": user_info["sub"],
+            "name": user_info["name"],
+            "email": user_info["email"],
+            "picture": user_info["picture"],
+        }
+        print("✅ Session user:", session["user"])
+
+        # Step 6: Redirect to dashboard
+        return redirect(url_for("dashboard"))
+
+    except Exception as e:
+        print("❌ Error during Google OAuth callback:", e)
+        return "Authorization failed.", 400
+
+
 
 
 def add_notification(user_id, message):
@@ -121,17 +242,36 @@ def add_notification(user_id, message):
     db.session.add(notif)
     db.session.commit()
 
-app.config['SESSION_COOKIE_SECURE'] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+
+
+
+
 
 # Make sure database tables are created within app context
 with app.app_context():
     db.create_all()
 
-# Routes
+
 @app.route("/")
 def home():
-    return render_template("index.html")
+    user = session.get("user")
+    if user:
+        return f"<h2>Welcome, {user['name']} 👋</h2><img src='{user['picture']}' width='100'><br><a href='/logout'>Logout</a>"
+    return "<a href='/login/google'>Login with Google</a>"
+
+@app.route("/dashboard")
+def dashboard():
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    user = session["user"]
+    return f"""
+        <h1>Welcome, {user['name']}!</h1>
+        <img src="{user['picture']}" alt="Profile Picture" width="100" height="100">
+        <p>Email: {user['email']}</p>
+        <a href="/logout">Logout</a>
+    """
+
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -224,7 +364,8 @@ def update_profile():
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("login"))
+    return redirect("/")
+
 
 @app.route("/forgot_password", methods=["GET", "POST"])
 def forgot_password():
@@ -393,15 +534,7 @@ def all_profiles():
         pending_users=pending_users,
     )
 
-@app.route("/login/google")
-def google_login():
-    nonce = secrets.token_urlsafe(16)
-    session["nonce"] = nonce  
-    redirect_uri = url_for("google_authorize", _external=True)
-    return google.authorize_redirect(redirect_uri, nonce=nonce)
 
-@app.route("/login/google/authorized")
-def google_authorize():
     token = google.authorize_access_token()
     nonce = session.pop("nonce", None)
     user_info = google.parse_id_token(token, nonce=nonce)
@@ -842,10 +975,10 @@ def edit_task(task_id):
 
 @app.before_request
 def load_unread_notifications():
-    g.unread_count = 0
     if "user_id" in session:
-        g.unread_count = Notification.query.filter_by(user_id=session["user_id"]).count()
-
+        # your logic here
+        pass
+    
 
 
 @app.route("/inbox", methods=["GET", "POST"])
