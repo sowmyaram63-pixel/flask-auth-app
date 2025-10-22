@@ -13,3 +13,4 @@ __pycache__/
 instance/
 users.db
 .venv/
+.venv/
