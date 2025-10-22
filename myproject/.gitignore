@@ -12,3 +12,4 @@ __pycache__/
 # SQLite DB
 instance/
 users.db
+.venv/
