@@ -1,0 +1,39 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="form-card">
+    <h2>🔐 Login</h2>
+
+    <!-- Normal Login Form -->
+    <form method="POST">
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+
+        <button type="submit" class="btn">Login</button>
+    </form>
+
+    <hr>
+
+    <!-- Google Login Button -->
+    <a href="{{ url_for('google_login') }}" class="google-btn">
+        <img src="https://developers.google.com/identity/images/g-logo.png"
+             alt="Google logo" width="20"
+             style="vertical-align:middle; margin-right:8px;">
+        Sign in with Google
+    </a>
+
+    <p class="extra-links">
+        <a href="{{ url_for('forgot_password') }}">❓ Forgot Password?</a><br>
+        Don’t have an account? <a href="{{ url_for('signup') }}">📝 Sign up</a>
+    </p>
+</div>
+{% endblock %}
+

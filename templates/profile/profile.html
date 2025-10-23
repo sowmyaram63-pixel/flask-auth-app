@@ -1,0 +1,106 @@
+
+{% extends "base.html" %}
+{% block content %}
+<div class="profile-container">
+  <div class="profile-card">
+    <div class="avatar-section">
+      {% if user.avatar_url %}
+        <img src="{{ user.avatar_url }}" alt="Profile Avatar" class="avatar-img">
+      {% else %}
+        <div class="avatar-placeholder">{{ (user.name or '?')[0] }}</div>
+      {% endif %}
+      <h2>{{ user.name or "Unnamed User" }}</h2>
+      <p class="email">{{ user.email }}</p>
+    </div>
+
+    <div class="info-section">
+      <p><strong>📱 Phone:</strong> {{ user.phone or "Not provided" }}</p>
+      <p><strong>📝 Bio:</strong> {{ user.bio or "No bio yet" }}</p>
+    </div>
+
+    <div class="actions">
+      <a href="{{ url_for('update_profile') }}" class="btn edit-btn">✏️ Edit Profile</a>
+      <a href="{{ url_for('all_profiles') }}" class="btn view-btn">📖 View All Profiles</a>
+      <a href="{{ url_for('logout') }}" class="btn logout-btn">🚪 Logout</a>
+    </div>
+  </div>
+</div>
+
+<style>
+.profile-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+.profile-card {
+  background: #fff;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  width: 400px;
+  text-align: center;
+}
+.avatar-section {
+  margin-bottom: 20px;
+}
+.avatar-img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 15px;
+  border: 3px solid #ddd;
+}
+.avatar-placeholder {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  font-weight: bold;
+  color: #666;
+  margin: 0 auto 15px;
+  border: 2px solid #ccc;
+}
+.email {
+  color: #777;
+  margin-bottom: 10px;
+}
+.info-section {
+  text-align: left;
+  margin-bottom: 20px;
+}
+.info-section p {
+  margin: 5px 0;
+}
+.actions {
+  display: flex;
+  justify-content: space-between;
+}
+.btn {
+  padding: 10px 15px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: 0.2s;
+}
+.edit-btn {
+  background: #4cafef;
+  color: white;
+}
+.view-btn {
+  background: #8bc34a;
+  color: white;
+}
+.logout-btn {
+  background: #f44336;
+  color: white;
+}
+.btn:hover {
+  opacity: 0.85;
+}
+</style>
+{% endblock %}

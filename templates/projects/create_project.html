@@ -1,0 +1,17 @@
+
+{% extends "base.html" %}
+{% block content %}
+<h2>➕ Create Project</h2>
+
+<form method="POST">
+  <label>Title:</label>
+  <input type="text" name="title" required><br>
+
+  <label>Description:</label>
+  <textarea name="description"></textarea><br>
+
+  <button type="submit">Create</button>
+</form>
+
+<a href="{{ url_for('projects') }}">⬅️ Back to Projects</a>
+{% endblock %}
