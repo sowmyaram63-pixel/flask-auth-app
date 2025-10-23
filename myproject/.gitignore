@@ -13,10 +13,5 @@ __pycache__/
 # SQLite DB
 instance/
 users.db
-.venv/
-.venv/
-.venv/
-.venv/
-.venv/
-.venv/
-venv/
+.env
+.flaskenv
