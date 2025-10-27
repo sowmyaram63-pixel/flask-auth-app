@@ -1,1 +1,1 @@
-web: cd clean-app && gunicorn myproject.app:app
+web: gunicorn myproject.app:app
