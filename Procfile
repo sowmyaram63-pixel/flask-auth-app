@@ -1,1 +1,0 @@
-web: gunicorn clean-app.myproject.app:app
