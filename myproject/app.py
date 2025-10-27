@@ -63,7 +63,15 @@ app = Flask(
 )
 
 app.secret_key = SECRET_KEY
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", "sqlite:///users.db")
+# Detect environment
+on_railway = os.getenv("RAILWAY_ENVIRONMENT") is not None
+
+if on_railway:
+    # ✅ Use Railway Postgres
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL").replace("postgres://", "postgresql://")
+else:
+    # ✅ Use local SQLite
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////Users/sowmya/GearFlow/myproject/clean_app/instance/users.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config["SESSION_PERMANENT"] = False
@@ -73,6 +81,7 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['OAUTHLIB_INSECURE_TRANSPORT'] = LOCAL_HOST
 app.debug = True
 app.config['PROPAGATE_EXCEPTIONS'] = True
+app.config['SQLALCHEMY_ECHO']=True
 Session(app)
 
 # -------------------------------
@@ -155,7 +164,7 @@ def google_authorized():
 
         user = User.query.filter_by(email=email).first()
         if not user:
-            user = User(name=name, email=email, picture=picture)
+            user = User(name=name, email=email, avatar_url=picture)
             db.session.add(user)
             db.session.commit()
 
@@ -178,6 +187,29 @@ def home():
     if 'google_id' not in session:
         return redirect(url_for('google_login'))  # or your login route name
     return render_template('index.html')
+
+@app.route("/__debug_state")
+def debug_state():
+    from flask import jsonify
+    try:
+        sess_keys = {k: (v if k in ("user_id","user_email","user_name") else "REDACTED") for k, v in dict(session).items()}
+        user_count = db.session.execute("SELECT COUNT(*) FROM user").scalar()
+        project_count = db.session.execute("SELECT COUNT(*) FROM project").scalar()
+        task_count = db.session.execute("SELECT COUNT(*) FROM task").scalar()
+
+        users = [dict(r) for r in db.session.execute("SELECT id,name,email FROM user LIMIT 10")]
+        projects = [dict(r) for r in db.session.execute("SELECT id,title,owner_id FROM project LIMIT 10")]
+        tasks = [dict(r) for r in db.session.execute("SELECT id,title,assignee_id,project_id FROM task LIMIT 10")]
+
+        return jsonify({
+            "session": sess_keys,
+            "counts": {"users": user_count, "projects": project_count, "tasks": task_count},
+            "users": users,
+            "projects": projects,
+            "tasks": tasks
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 @app.route("/dashboard")
 def dashboard():

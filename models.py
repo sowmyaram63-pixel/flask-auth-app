@@ -1,5 +1,5 @@
 
-from .extensions import db
+from myproject.extensions import db
 from datetime import datetime
 
 class User(db.Model):
