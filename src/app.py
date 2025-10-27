@@ -7,8 +7,8 @@ from sendgrid.helpers.mail import Mail as SendGridMail
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from flask_session import Session
-from myproject.extensions import db, mail, migrate
-from myproject.models import User, Connection, Project, Task, Notification
+from src.extensions import db, mail, migrate
+from src.models import User, Connection, Project, Task, Notification
 from dotenv import load_dotenv
 from werkzeug.middleware.proxy_fix import ProxyFix
 import secrets, os, random, time
