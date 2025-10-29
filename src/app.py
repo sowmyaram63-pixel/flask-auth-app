@@ -66,12 +66,16 @@ app.secret_key = SECRET_KEY
 # Detect environment
 on_railway = os.getenv("RAILWAY_ENVIRONMENT") is not None
 
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+INSTANCE_PATH = os.path.join(BASE_DIR, "../instance")
+
 if on_railway:
     # ✅ Use Railway Postgres
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL").replace("postgres://", "postgresql://")
 else:
     # ✅ Use local SQLite
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////Users/sowmya/GearFlow/myproject/clean_app/instance/users.db"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////Users/sowmya/GearFlow/clean-app/instance/users.db"
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config["SESSION_PERMANENT"] = False
@@ -119,15 +123,43 @@ def send_email(to_email, subject, body):
     except Exception as e:
         print(f"SendGrid error: {e}")
 
+def seed_data():
+    from src.models import db, User, Project, Task  # adjust import paths as needed
+
+    # Avoid duplicate seeding
+    if User.query.first():
+        print("✅ Database already seeded.")
+        return
+
+    # --- Create sample users ---
+    user1 = User(name="Alice", email="alice@example.com")
+    user2 = User(name="Bob", email="bob@example.com")
+
+    # --- Create sample projects ---
+    project1 = Project(name="AI Research", description="Exploring ML models and deep learning.")
+    project2 = Project(name="Web App", description="Building a Flask + React project tracker.")
+
+    # --- Create sample tasks ---
+    task1 = Task(title="Data Preprocessing", project=project1)
+    task2 = Task(title="Model Training", project=project1)
+    task3 = Task(title="Frontend UI", project=project2)
+
+    db.session.add_all([user1, user2, project1, project2, task1, task2, task3])
+    db.session.commit()
+
+    print("🌱 Sample data added successfully!")
+
 # -------------------------------
 # DB init
 # -------------------------------
 db.init_app(app)
 migrate.init_app(app, db)
 
-with app.app_context():
-    db.create_all()
-
+db_path = os.path.join(os.path.dirname(__file__), "data.db")
+if not os.path.exists(db_path):
+    with app.app_context():
+        db.create_all()
+        seed_data()
 # -------------------------------
 # OAuth (Google)
 # -------------------------------
@@ -929,6 +961,12 @@ def load_unread_notifications():
         # your logic here
         pass
     
+@app.route('/')
+def index():
+    users = User.query.all()
+    projects = Project.query.all()
+    tasks = Task.query.all()
+    return render_template('index.html', users=users, projects=projects, tasks=tasks)
 
 
 @app.route("/inbox", methods=["GET", "POST"])

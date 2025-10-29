@@ -4,6 +4,90 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-  <h2>Welcome</h2>
+  <h1>📊 My Database Overview</h1>
+
+    <div style="text-align:center;">
+        <form method="get" action="/">
+            <button type="submit" class="refresh-btn">🔄 Refresh Data</button>
+        </form>
+    </div>
+
+    <div class="section">
+        <h2>👤 Users</h2>
+        <ul>
+            {% for u in users %}
+                <li><strong>{{ u.name }}</strong> — {{ u.email }}</li>
+            {% else %}
+                <li>No users found</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>📁 Projects</h2>
+        <ul>
+            {% for p in projects %}
+                <li><strong>{{ p.title }}</strong> — {{ p.description }}</li>
+            {% else %}
+                <li>No projects found</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>🧩 Tasks</h2>
+        <ul>
+            {% for t in tasks %}
+                <li><strong>{{ t.title }}</strong> — {{ t.status }}</li>
+            {% else %}
+                <li>No tasks found</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <style>
+       body { 
+            font-family: Arial, sans-serif; 
+            padding: 30px; 
+            background: #f4f6f9;
+        }
+        h1 { color: #007bff; text-align: center; }
+        h2 { color: #343a40; margin-top: 40px; }
+        ul { 
+            list-style-type: none; 
+            padding: 0; 
+            display: grid; 
+            gap: 10px; 
+            margin-top: 10px;
+        }
+        li {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        .refresh-btn {
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 15px;
+            transition: background 0.3s;
+        }
+        .refresh-btn:hover {
+            background: #0056b3;
+        }
+        .section {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+    </style>
   
 {% endblock %}
