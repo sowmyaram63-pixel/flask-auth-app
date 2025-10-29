@@ -184,9 +184,14 @@ def google_authorized():
 
 @app.route("/")
 def home():
+    return render_template("auth/home.html")
+
+
+@app.route("/dashboard")
+def dashboard():
     if 'google_id' not in session:
-        return redirect(url_for('google_login'))  # or your login route name
-    return render_template('index.html')
+        return redirect(url_for('google_login'))
+    return render_template("index.html")
 
 @app.route("/__debug_state")
 def debug_state():
@@ -210,19 +215,8 @@ def debug_state():
         })
     except Exception as e:
         return jsonify({"error": str(e)})
-
-@app.route("/dashboard")
-def dashboard():
-    if "user" not in session:
-        return redirect(url_for("login"))
-
-    user = session["user"]
-    return f"""
-        <h1>Welcome, {user['name']}!</h1>
-        <img src="{user['picture']}" alt="Profile Picture" width="100" height="100">
-        <p>Email: {user['email']}</p>
-        <a href="/logout">Logout</a>
-    """
+  
+   
 
 
 @app.route("/signup", methods=["GET", "POST"])
@@ -524,6 +518,11 @@ def projects():
 
     return render_template("projects/projects.html", projects=my_projects, user=user)
 
+def add_notification(user_id, message):
+    """Adds a notification for a specific user."""
+    notification = Notification(user_id=user_id, message=message)
+    db.session.add(notification)
+    db.session.commit()
 
 @app.route("/projects/create", methods=["GET", "POST"])
 def create_project():
@@ -667,16 +666,13 @@ def add_task():
     db.session.add(new_task)
     db.session.commit()
 
-    assignee_name = new_task.assignee.name if new_task.assignee else "Unassigned"
+       # ✅ optional: add notification
+    add_notification(assignee_id, f"New task '{title}' assigned to you!")
 
-    return jsonify({
-        "task": {
-            "id": new_task.id,
-            "title": new_task.title,
-            "description": new_task.description,
-            "assignee": assignee_name
-        }
-    })
+    flash(f"Task '{title}' created successfully!", "success")
+    return redirect(url_for("my_tasks"))  # or wherever you list tasks
+
+  
 
 
 

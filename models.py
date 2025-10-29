@@ -69,6 +69,8 @@ class Task(db.Model):
 
     project_id = db.Column(db.Integer, db.ForeignKey("project.id"))
     project = db.relationship("Project", backref="tasks")
+
+    
    
     def __repr__(self):
         return f"<Task {self.title} ({self.status})>"
