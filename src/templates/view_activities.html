@@ -1,0 +1,26 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>All User Activities</title>
+</head>
+<body>
+  <h2>All User Recent Activities</h2>
+  <table border="1" cellpadding="8">
+    <tr>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Recent Activity</th>
+      <th>Last Updated</th>
+    </tr>
+    {% for u in users %}
+    <tr>
+      <td>{{ u.name }}</td>
+      <td>{{ u.email }}</td>
+      <td>{{ u.recent_activity or 'No update yet' }}</td>
+      <td>{{ u.updated_at.strftime('%Y-%m-%d %H:%M') if u.updated_at else '' }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>

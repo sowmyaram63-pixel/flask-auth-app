@@ -1,43 +1,150 @@
 
 {% extends "base.html" %}
-
 {% block content %}
-<div class="form-card">
-    <h2>➕ Add Task</h2>
 
-    <form method="POST">
-        <div class="form-group">
-            <label for="title">Task Title:</label>
-            <input type="text" id="title" name="title" required>
-        </div>
+<div class="add-task-container">
+  <h1 class="page-title">+ Add Task</h1>
 
-        <div class="form-group">
-            <label for="description">Description:</label>
-            <textarea id="description" name="description"></textarea>
-        </div>
+  <form method="POST" action="{{ url_for('create_task_from_my_tasks') }}" class="add-task-form">
 
-        <div class="form-group">
-            <label for="project_id">Project:</label>
-            <select name="project_id" id="project_id" required>
-                {% for project in projects %}
-                <option value="{{ project.id }}">{{ project.title }}</option>
-                {% endfor %}
-            </select>
-            <select name="assignee_id" required>
-               <option value="">-- Assign to --</option>
-               {% for user in users %}
-                  <option value="{{ user.id }}">{{ user.name or user.email }}</option>
-               {% endfor %}
-            </select>
+    <!-- Select or Create Project -->
+    <div class="form-section">
+      <label><strong>Select Existing Project</strong></label>
+      <select name="project_id" id="project_id">
+        <option value="">-- Select Project --</option>
+        {% for p in projects %}
+          <option value="{{ p.id }}">{{ p.title }}</option>
+        {% endfor %}
+      </select>
 
-        </div>
+      <p class="or">OR</p>
 
-        <div class="form-group">
-            <label for="due_date">Due Date:</label>
-            <input type="date" id="due_date" name="due_date">
-        </div>
+      <label><strong>Create New Project</strong></label>
+      <input type="text" name="new_project_title" placeholder="Enter new project title">
 
-        <button type="submit" class="btn">Create Task</button>
-    </form>
+      <label><strong>Project Description (optional)</strong></label>
+      <textarea name="new_project_desc" placeholder="Describe your project"></textarea>
+    </div>
+
+    <hr>
+
+    <!-- Task Details -->
+    <div class="form-section">
+      <label><strong>Task Title</strong></label>
+      <input type="text" name="title" placeholder="Enter task title" required>
+
+      <label><strong>Description</strong></label>
+      <textarea name="description" placeholder="Describe the task..."></textarea>
+
+      <label><strong>Assign To</strong></label>
+      <select name="assignee_id">
+        <option value="">-- Select Employee --</option>
+        {% for user in users %}
+          <option value="{{ user.id }}">{{ user.name or user.email }}</option>
+        {% endfor %}
+      </select>
+
+      <label><strong>Due Date</strong></label>
+      <input type="date" name="due_date">
+
+      <label><strong>Priority</strong></label>
+      <select name="priority">
+        <option value="Low">Low</option>
+        <option value="Medium" selected>Medium</option>
+        <option value="High">High</option>
+        <option value="Urgent">Urgent</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn-primary">Create Task</button>
+  </form>
 </div>
+
+<style>
+.add-task-container {
+  max-width: 700px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 12px;
+  padding: 30px 40px;
+  box-shadow: 0 5px 16px rgba(0,0,0,0.1);
+}
+
+.page-title {
+  text-align: center;
+  background: linear-gradient(to right, #a78bfa, #7c3aed);
+  -webkit-background-clip: text;
+  color: transparent;
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 30px;
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #333;
+}
+
+input[type="text"],
+input[type="date"],
+textarea,
+select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  margin-bottom: 15px;
+  transition: border 0.2s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #7c3aed;
+  outline: none;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.or {
+  text-align: center;
+  margin: 10px 0;
+  font-weight: 700;
+  color: #777;
+}
+
+.btn-primary {
+  display: block;
+  width: 100%;
+  background: #7c3aed;
+  color: white;
+  border: none;
+  padding: 12px 0;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: #5b21b6;
+  transform: translateY(-2px);
+}
+
+hr {
+  border: none;
+  height: 1px;
+  background: #eee;
+  margin: 20px 0;
+}
+</style>
+
 {% endblock %}

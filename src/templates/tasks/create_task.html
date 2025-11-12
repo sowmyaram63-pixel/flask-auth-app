@@ -14,6 +14,27 @@
     <label for="due_date">Due Date:</label><br>
     <input type="date" id="due_date" name="due_date"><br><br>
 
+
+    {% if session.get('role') == 'admin' %}
+        <!-- Assign to employee (Admin-only) -->
+        <label for="assignee_id">Assign To:</label><br>
+        <select id="assignee_id" name="assignee_id" required>
+            <option value="">-- Select Employee --</option>
+            {% for employee in employees %}
+                <option value="{{ employee.id }}">{{ employee.name }} ({{ employee.email }})</option>
+            {% endfor %}
+        </select><br><br>
+
+        <!-- Priority (Admin-only) -->
+        <label for="priority">Priority:</label><br>
+        <select name="priority" id="priority" class="form-control">
+            <option value="Low">🟢 Low</option>
+            <option value="Medium" selected>🟡 Medium</option>
+            <option value="High">🟠 High</option>
+            <option value="Urgent">🔴 Urgent</option>
+        </select><br><br>
+    {% endif %}
+
     <button type="submit">Save Task</button>
 </form>
 

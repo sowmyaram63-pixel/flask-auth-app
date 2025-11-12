@@ -1,0 +1,23 @@
+
+<div class="task-item"
+     style="border-left: 5px solid {{ 'green' if task.status == 'done' else ('orange' if task.status == 'in-progress' else '#007bff') }}">
+  <div class="task-header">
+    <h3>{{ task.title }}</h3>
+    <div class="task-actions">
+      <button onclick="openTaskModal({{ task.id }}, '{{ task.title }}', '{{ task.description or '' }}', '{{ task.status }}', '{{ task.due_date }}', '{{ task.assignee_id }}')" class="edit-btn">Edit</button>
+      {% if user.role == "admin" %}
+        <button onclick="deleteTask({{ task.id }})" class="delete-btn">Delete</button>
+      {% endif %}
+    </div>
+  </div>
+  <p>{{ task.description or 'No description' }}</p>
+  {% if task.assignee %}
+    <p><strong>Assigned to:</strong> {{ task.assignee.name }}</p>
+  {% endif %}
+  {% if task.assigned_by %}
+    <p><strong>Assigned by:</strong> {{ task.assigned_by.name }}</p>
+  {% endif %}
+  {% if task.due_date %}
+    <p><strong>Due:</strong> {{ task.due_date }}</p>
+  {% endif %}
+</div>
