@@ -13,6 +13,8 @@ class User(db.Model):
     bio = db.Column(db.Text)
     avatar_url = db.Column(db.String(300))
     role = db.Column(db.String(20), default="employee") 
+    recent_activity = db.Column(db.String(255))  # small description
+    priority = db.Column(db.String(20), default="Medium")
     
 
     # Relationships
@@ -69,9 +71,11 @@ class Task(db.Model):
 
     project_id = db.Column(db.Integer, db.ForeignKey("project.id"))
     project = db.relationship("Project", backref="tasks")
+
+    priority = db.Column(db.String(20), default="Medium") 
    
     def __repr__(self):
-        return f"<Task {self.title} ({self.status})>"
+        return f"<Task {self.title} ({self.status}) - Priority: {self.priority}>"
 
 
 class Notification(db.Model):

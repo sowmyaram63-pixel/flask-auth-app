@@ -1,271 +1,716 @@
 
 {% extends "base.html" %}
 {% block content %}
+
 <div class="tasks-container">
+
+  <!-- Header Section -->
   <div class="header">
-    <h1>My Tasks</h1>
     {% if user.role == "admin" %}
-      <button class="add-task-btn" onclick="openAddTaskModal()">+ Add Task</button>
+      <button id="openAddBtn" class="add-task-btn">+ Add Task</button>
     {% endif %}
+    <h1 class="page-title">My Tasks</h1>
   </div>
 
-  <div class="task-list">
-  {% if tasks %}
-   {% for task in tasks %}
-     <div class="task-item"
-          style="border-left: 5px solid {{ 'green' if task.status == 'done' else ('orange' if task.status == 'in-progress' else '#007bff') }}">
-       <div class="task-header">
-         <h3>{{ task.title }}</h3>
-         <div class="task-actions">
-           <button onclick="openTaskModal({{ task.id }}, '{{ task.title }}', '{{ task.description or '' }}', '{{ task.status }}', '{{ task.due_date }}', '{{ task.assignee_id }}')" class="edit-btn">Edit</button>
-           {% if user.role == "admin" or task.assignee_id == user.id %}
-             <button onclick="deleteTask({{ task.id }})" class="delete-btn">Delete</button>
-           {% endif %}
-         </div>
-       </div>
-       <p>{{ task.description or 'No description' }}</p>
+  <!-- Kanban Board -->
+  <div class="kanban-board">
 
-      <!-- ✅ Updated Status Line -->
-       <p class="task-status-line">
-         <strong>Status:</strong>
-         {% if task.status == "done" %}
-           <span class="status done">Done ✅</span>
-         {% elif task.status == "in-progress" %}
-           <span class="status progress">In Progress 🔄</span>
-         {% else %}
-           <span class="status todo">To Do 📝</span>
-         {% endif %}
-       </p>
+    <!-- To Do Column -->
+    <div class="kanban-column" data-status="todo">
+      <h2>To Do 📝</h2>
+      {% for task in tasks if task.status == 'todo' %}
+        <div class="task-card {{ task.priority.lower() }}" data-id="{{ task.id }}">
+          <div class="task-header">
+            <h3 class="task-title">{{ task.title }}</h3>
+            {% if user.role == "admin" or task.assignee_id == user.id %}
+              <div class="task-actions">
+                <button class="edit-btn"
+                  onclick="openTaskModal('{{ task.id }}', '{{ task.title }}', '{{ task.description }}', '{{ task.status }}', '{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else '' }}', '{{ task.assignee_id or '' }}', '{{ task.priority or 'Medium' }}')">
+                  Edit
+                </button>
+                <button class="delete-btn"  data-id="{{ task.id }}">Delete</button>
+              </div>
+            {% endif %}
+          </div>
 
-       {% if task.assignee %}
-         <p><strong>Assigned to:</strong> {{ task.assignee.name }}</p>
-       {% endif %}
-       {% if task.assigned_by %}
-         <p><strong>Assigned by:</strong> {{ task.assigned_by.name }}</p>
-       {% endif %}
-       {% if task.due_date %}
-         <p><strong>Due:</strong> {{ task.due_date }}</p>
-       {% endif %}
-     </div> <!-- ✅ This closes each task-item -->
-  {% endfor %}
-{% else %}
-  <p>No tasks found.</p>
-{% endif %}
+          <div class="task-body">
+            <p><strong>Description:</strong> {{ task.description or "No description available" }}</p>
+            <p><strong>Status:</strong> {{ task.status }}</p>
+            <p><strong>Due Date:</strong> {{ task.due_date.strftime('%Y-%m-%d') if task.due_date else "No due date" }}</p>
+            <p><strong>Priority:</strong>
+              <span class="priority-tag {{ (task.priority or 'medium').lower() }}">
+                {{ task.priority or 'Medium' }}
+              </span>
+
+            </p>
+            <p><strong>Assigned To:</strong> {{ task.assignee.name if task.assignee else "Unassigned" }}</p>
+            <p><strong>Assigned By:</strong> {{ task.assigned_by.name if task.assigned_by else "Admin" }}</p>
+          </div>
+        </div>
+      {% else %}
+        <p class="empty">No To Do tasks</p>
+      {% endfor %}
+    </div>
+
+    <!-- In Progress Column -->
+    <div class="kanban-column" data-status="in-progress">
+      <h2>In Progress 🔄</h2>
+      {% for task in tasks if task.status == 'in-progress' %}
+        <div class="task-card {{ (task.priority or 'medium').lower() }}" data-id="{{ task.id }}">
+
+          <div class="task-header">
+            <h3 class="task-title">{{ task.title }}</h3>
+            {% if user.role == "admin" or task.assignee_id == user.id %}
+              <div class="task-actions">
+                <button class="edit-btn"
+                  onclick="openTaskModal('{{ task.id }}', '{{ task.title }}', '{{ task.description }}', '{{ task.status }}', '{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else '' }}', '{{ task.assignee_id or '' }}', '{{ task.priority or 'Medium' }}')">
+                  Edit
+                </button>
+                <button class="delete-btn"   data-id="{{ task.id }}">Delete</button>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="task-body">
+            <p><strong>Description:</strong> {{ task.description or "No description available" }}</p>
+            <p><strong>Status:</strong> {{ task.status }}</p>
+            <p><strong>Due Date:</strong> {{ task.due_date.strftime('%Y-%m-%d') if task.due_date else "No due date" }}</p>
+            <p><strong>Priority:</strong>
+               <span class="priority-tag {{ (task.priority or 'Medium').lower() }}">
+                 {{ task.priority or 'Medium' }}
+               </span>
 
 
+            </p>
+            <p><strong>Assigned To:</strong> {{ task.assignee.name if task.assignee else "Unassigned" }}</p>
+            <p><strong>Assigned By:</strong> {{ task.assigned_by.name if task.assigned_by else "Admin" }}</p>
+          </div>
+        </div>
+      {% else %}
+        <p class="empty">No tasks in progress</p>
+      {% endfor %}
+    </div>
 
+    <!-- Done Column -->
+    <div class="kanban-column" data-status="done">
+      <h2>Done ✅</h2>
+      {% for task in tasks if task.status == 'done' %}
+        <div class="task-card {{ task.priority.lower() }}" data-id="{{ task.id }}">
+          <div class="task-header">
+            <h3 class="task-title">{{ task.title }}</h3>
+            {% if user.role == "admin" or task.assignee_id == user.id %}
+              <div class="task-actions">
+                <button class="edit-btn"
+                  onclick="openTaskModal('{{ task.id }}', '{{ task.title }}', '{{ task.description }}', '{{ task.status }}', '{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else '' }}', '{{ task.assignee_id or '' }}', '{{ task.priority or 'Medium' }}')">
+                  Edit
+                </button>
+                <button class="delete-btn"  data-id="{{ task.id }}" >Delete</button>
+              </div>
+            {% endif %}
+          </div>
 
-    
+          <div class="task-body">
+            <p><strong>Description:</strong> {{ task.description or "No description available" }}</p>
+            <p><strong>Status:</strong> {{ task.status }}</p>
+            <p><strong>Due Date:</strong> {{ task.due_date.strftime('%Y-%m-%d') if task.due_date else "No due date" }}</p>
+            <p><strong>Priority:</strong>
+              <span class="priority-tag {{ task.priority.lower() }}">{{ task.priority }}</span>
+            </p>
+            <p><strong>Assigned To:</strong> {{ task.assignee.name if task.assignee else "Unassigned" }}</p>
+            <p><strong>Assigned By:</strong> {{ task.assigned_by.name if task.assigned_by else "Admin" }}</p>
+          </div>
+        </div>
+      {% else %}
+        <p class="empty">No completed tasks</p>
+      {% endfor %}
+    </div>
+  </div>
 </div>
 
-<!-- Modal: Edit Task -->
-<div id="taskModal" class="modal">
+<!-- ✅ Add Task Modal -->
+<div id="addTaskModal" class="modal hidden">
   <div class="modal-content">
-    <span class="close" onclick="closeTaskModal()">&times;</span>
-    <h2>Edit Task</h2>
-    <form id="editTaskForm" method="POST">
-      <label>Title</label>
-      <input type="text" name="title" id="taskTitle" required>
+    <button class="close-btn" id="closeAddModal">&times;</button>
+    <h2>Add Task</h2>
 
-      <label>Description</label>
-      <textarea name="description" id="taskDescription"></textarea>
+    <form id="addTaskForm">
+      <label>Select Existing Project:</label>
+      <select id="projectSelect">
+        <option value="">-- Select Project --</option>
+        {% for p in projects %}
+          <option value="{{ p.id }}">{{ p.title }}</option>
+        {% endfor %}
+      </select>
 
-      <label>Status</label>
-      <select name="status" id="taskStatus">
+      <p class="or">OR</p>
+
+      <label>Create New Project:</label>
+      <input type="text" id="newProjectTitle" placeholder="New project title">
+      <textarea id="newProjectDesc" placeholder="Project description (optional)"></textarea>
+
+      <hr>
+
+      <label>Task Title:</label>
+      <input type="text" id="taskTitle" required>
+
+      <label>Description:</label>
+      <textarea id="taskDesc"></textarea>
+
+      <label>Assign To:</label>
+      <select id="taskAssignee">
+        <option value="">-- Select --</option>
+        {% for u in users %}
+          <option value="{{ u.id }}">{{ u.name or u.email }}</option>
+        {% endfor %}
+      </select>
+
+      <label>Due Date:</label>
+      <input type="date" id="taskDueDate">
+
+      <label>Status:</label>
+      <select id="taskStatus">
         <option value="todo">To Do</option>
         <option value="in-progress">In Progress</option>
         <option value="done">Done</option>
       </select>
 
-      {% if user.role == "admin" %}
-        <label>Assign to</label>
-        <select name="assignee_id" id="taskAssignee">
-          <option value="">Unassigned</option>
-          {% for u in users %}
-            <option value="{{ u.id }}">{{ u.name }}</option>
-          {% endfor %}
-        </select>
+      <label>Priority:</label>
+      <select id="taskPriority">
+        <option value="Low">Low</option>
+        <option value="Medium" selected>Medium</option>
+        <option value="High">High</option>
+        <option value="Urgent">Urgent</option>
+      </select>
 
-        <label>Due Date</label>
-        <input type="date" name="due_date" id="taskDueDate">
-      {% else %}
-        <!-- employee keeps their assignment -->
-        <input type="hidden" name="assignee_id" value="{{ user.id }}">
-      {% endif %}
-
-      <button type="submit">Save</button>
+      <button type="submit" class="btn-primary">Save</button>
     </form>
   </div>
 </div>
 
-<!-- Modal: Add Task (Admin only) -->
-{% if user.role == "admin" %}
-<div id="addTaskModal" class="modal">
+<!-- ✅ Edit Task Modal -->
+<div id="editTaskModal" class="modal hidden">
   <div class="modal-content">
-    <span class="close" onclick="closeAddTaskModal()">&times;</span>
-    <h2>Create New Task</h2>
-    <form id="addTaskForm" method="POST" action="/add_task">
-      <label>Title</label>
-      <input type="text" name="title" required>
+    <button class="close-btn" id="closeEditModal">&times;</button>
+    <h2>Edit Task</h2>
 
-      <label>Description</label>
-      <textarea name="description"></textarea>
+    <form id="editTaskForm">
+      <input type="hidden" id="editTaskId">
 
-      <label>Assign to</label>
-      <select name="assignee_id">
-        <option value="">Unassigned</option>
+      <label>Task Title:</label>
+      <input type="text" id="editTitle" required>
+
+      <label>Description:</label>
+      <textarea id="editDesc"></textarea>
+
+      <label>Status:</label>
+      <select id="editStatus">
+        <option value="todo">To Do</option>
+        <option value="in-progress">In Progress</option>
+        <option value="done">Done</option>
+      </select>
+
+      <label>Priority:</label>
+      <select id="editPriority">
+        <option value="Low">Low</option>
+        <option value="Medium">Medium</option>
+        <option value="High">High</option>
+        <option value="Urgent">Urgent</option>
+      </select>
+
+      <label>Due Date:</label>
+      <input type="date" id="editDueDate">
+
+      <label>Assign To:</label>
+      <select id="editAssignee">
+        <option value="">-- Select --</option>
         {% for u in users %}
-          <option value="{{ u.id }}">{{ u.name }}</option>
+          <option value="{{ u.id }}">{{ u.name or u.email }}</option>
         {% endfor %}
       </select>
 
-      <label>Due Date</label>
-      <input type="date" name="due_date">
-
-      <button type="submit">Create</button>
+      <button type="submit" class="btn-primary">Update Task</button>
     </form>
   </div>
 </div>
-{% endif %}
 
+
+
+
+
+<!-- ---------- CSS ---------- -->
 <style>
-.tasks-container { width: 80%; margin: 2em auto; }
-.header { display: flex; justify-content: space-between; align-items: center; }
-.add-task-btn {
-  background-color: #007bff;
-  color: white;
-  padding: 8px 14px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+/* ====== Header ====== */
+.header {
+  background: linear-gradient(to right, #f6a6ff, #b19fff);
+  padding: 18px 25px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
 }
-.add-task-btn:hover { background-color: #0056b3; }
 
-.task-item {
-  background: #fff;
-  padding: 1em;
-  margin-bottom: 1em;
-  border-radius: 6px;
-  box-shadow: 0 0 4px rgba(0,0,0,0.1);
+.page-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color:#fff;
+  margin: 0 auto;
+  flex-grow: 1;
+  text-align: center;
 }
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 10;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.4);
-}
-.modal-content {
-  background-color: #fff;
-  margin: 10% auto;
-  padding: 20px;
-  width: 400px;
-  border-radius: 8px;
-}
-.close {
-  float: right;
-  font-size: 24px;
-  cursor: pointer;
-}
-.edit-btn {
-  background: #007bff;
-  color: white;
+
+.add-task-btn {
+  background: #6c4be8;
+  color: #fff;
   border: none;
-  padding: 6px 12px;
-  border-radius: 5px;
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1rem;
   cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(108, 75, 232, 0.4);
+}
+.add-task-btn:hover {
+  background: #5938d4;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(108, 75, 232, 0.5);
+}
+
+
+/* ====== Kanban Layout ====== */
+.kanban-board {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+.kanban-column {
+  flex: 1;
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.kanban-column h2 {
+  text-align: center;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+/* ====== Task Card ====== */
+/* Task Header - Clean horizontal layout */
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.task-title {
+  flex: 1;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #222;
+  margin: 0;
+  word-break: break-word;
+}
+  
+.task-card {
+  background: #fff;
+  border-radius: 15px;
+  border-top: 4px solid #ddd;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  transition: all 0.2s ease;
+  flex-direction: column;
+}
+.task-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
 }
 .task-actions {
   display: flex;
-  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  margin-right: 5px;
 }
+.btn-edit,
+.btn-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;          /* perfect uniform height */
+  min-width: 82px;       /* consistent width */
+  padding: 0 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #fff !important;
+  text-decoration: none !important;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+
+.edit-btn {
+  background: #28a745;
+  color: #fff !important; /* ensures white even if link/button conflicts */
+  border: none;
+  height: 32px;
+  padding: 0 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.edit-btn:hover {
+  background: #218838;
+  transform: translateY(-1px);
+}
+
+
 
 .delete-btn {
   background: #dc3545;
   color: white;
   border: none;
-  padding: 6px 12px;
-  border-radius: 5px;
+  height: 32px;
+  padding: 0 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .delete-btn:hover {
   background: #b02a37;
 }
 
+.task-actions button:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
 
-
-
-.task-status-line {
+/* ====== Task Body ====== */
+/* Task Details - Inline layout (like Description: rides for women) */
+.task-body {
+  border-top: 1px solid #eee;
+  padding-top: 12px;
   margin-top: 8px;
-  font-size: 15px;
+  display: flex;
+  gap: 4px;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.5;
+  flex-direction: column;
 }
 
-.status {
-  font-weight: bold;
+.task-body p {
+  margin: 0;
+  font-size: 14px;
+  color: #333;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+.task-body strong {
+  font-weight: 700;
+  color: #111;
+  margin-right: 4px;
 }
 
-.status.todo {
-  color: #007bff;
+
+.priority-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: capitalize;
 }
 
-.status.progress {
-  color: #ff9800;
+.priority-tag.low {
+  background: #28a745;
+}
+.priority-tag.medium {
+  background: #ffc107;
+  color: #000;
+}
+.priority-tag.high {
+  background: #fd7e14;
+}
+.priority-tag.urgent {
+  background: #dc3545;
 }
 
-.status.done {
-  color: #28a745;
+/* ====== Card Border Color by Priority ====== */
+.task-card.low {
+  border-top-color: #28a745;
 }
+.task-card.medium {
+  border-top-color: #ffc107;
+}
+.task-card.high {
+  border-top-color: #fd7e14;
+}
+.task-card.urgent {
+  border-top-color: #dc3545;
+}
+
+/* ====== Empty State ====== */
+.empty {
+  text-align: center;
+  color: #777;
+  font-style: italic;
+  margin-top: 10px;
+}
+
+/* ====== Modal ====== */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0; 
+  left: 0;
+  width: 100%; 
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* ✅ ensure above header */
+  backdrop-filter: blur(3px); /* nice glassy blur effect */
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 12px;
+  padding: 28px;
+  width: 440px;
+  max-height: 85vh; /* ✅ ensures it fits on smaller screens */
+  overflow-y: auto; /* scroll if too tall */
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  transform: translateY(20px); /* slight drop for better visual */
+  animation: fadeInModal 0.25s ease-out;
+  z-index: 10000;
+}
+
+.modal-close {
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+@keyframes fadeInModal {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(20px);
+  }
+}
+
+/* Optional: slightly dim background behind modal */
+body.modal-open {
+  overflow: hidden; /* prevent scroll when modal open */
+}
+
+
+
+.hidden { display: none !important; }
+.modal:not(.hidden) { display: flex !important; }
 
 </style>
 
+<!-- ---------- JS ---------- -->
 <script>
-function openTaskModal(id, title, desc, status, due, assigneeId) {
-  const modal = document.getElementById("taskModal");
-  document.getElementById("editTaskForm").action = `/update_task/${id}`;
-  document.getElementById("taskTitle").value = title || "";
-  document.getElementById("taskDescription").value = desc || "";
-  document.getElementById("taskStatus").value = status || "todo";
-  if (document.getElementById("taskAssignee")) {
-    document.getElementById("taskAssignee").value = assigneeId || "";
-  }
-  if (due && document.getElementById("taskDueDate")) {
-    document.getElementById("taskDueDate").value = due;
-  }
-  modal.style.display = "block";
-}
-function closeTaskModal() {
-  document.getElementById("taskModal").style.display = "none";
-}
-function openAddTaskModal() {
-  document.getElementById("addTaskModal").style.display = "block";
-}
-function closeAddTaskModal() {
-  document.getElementById("addTaskModal").style.display = "none";
-}
-window.onclick = function(e) {
-  const addModal = document.getElementById("addTaskModal");
-  const editModal = document.getElementById("taskModal");
-  if (e.target === addModal) addModal.style.display = "none";
-  if (e.target === editModal) editModal.style.display = "none";
-}
-async function deleteTask(taskId) {
-  if (!confirm("Are you sure you want to delete this task?")) return;
+document.addEventListener("DOMContentLoaded", () => {
 
-  const response = await fetch(`/delete_task/${taskId}`, {
-    method: "POST"
+  // --- ADD TASK ---
+  const addModal = document.getElementById("addTaskModal");
+  const openAddBtn = document.getElementById("openAddBtn");
+  const closeAddBtn = document.getElementById("closeAddModal");
+  const addForm = document.getElementById("addTaskForm");
+
+  openAddBtn?.addEventListener("click", () => addModal.classList.remove("hidden"));
+  closeAddBtn?.addEventListener("click", () => addModal.classList.add("hidden"));
+  window.addEventListener("click", (e) => { if (e.target === addModal) addModal.classList.add("hidden"); });
+
+  addForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const payload = {
+      project_id: document.getElementById("projectSelect").value,
+      new_project_title: document.getElementById("newProjectTitle").value.trim(),
+      new_project_desc: document.getElementById("newProjectDesc").value.trim(),
+      title: document.getElementById("taskTitle").value.trim(),
+      description: document.getElementById("taskDesc").value.trim(),
+      assignee_id: document.getElementById("taskAssignee").value,
+      due_date: document.getElementById("taskDueDate").value,
+      status: document.getElementById("taskStatus").value,
+      priority: document.getElementById("taskPriority").value
+    };
+
+    const res = await fetch("/api/add_task", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (!data.success) return alert("⚠️ " + (data.error || "Task creation failed."));
+
+    addModal.classList.add("hidden");
+    window.location.reload();
   });
 
-  if (response.ok) {
-    alert("Task deleted successfully!");
-    location.reload();
-  } else {
-    alert("Failed to delete task.");
+  // --- EDIT TASK ---
+  const editModal = document.getElementById("editTaskModal");
+  const closeEditBtn = document.getElementById("closeEditModal");
+  const editForm = document.getElementById("editTaskForm");
+
+  closeEditBtn?.addEventListener("click", () => editModal.classList.add("hidden"));
+  window.addEventListener("click", (e) => { if (e.target === editModal) editModal.classList.add("hidden"); });
+
+  // ✅ When clicking Edit button
+  window.openTaskModal = function (id, title, desc, status, due, assignee, priority) {
+    document.getElementById("editTaskId").value = id;
+    document.getElementById("editTitle").value = title || "";
+    document.getElementById("editDesc").value = desc || "";
+    document.getElementById("editStatus").value = status || "todo";
+    document.getElementById("editDueDate").value = due || "";
+    document.getElementById("editAssignee").value = assignee || "";
+    document.getElementById("editPriority").value = priority || "Medium";
+    editModal.classList.remove("hidden");
+  };
+
+  // ✅ Submit edit form
+  editForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = document.getElementById("editTaskId").value;
+    const payload = {
+      title: document.getElementById("editTitle").value.trim(),
+      description: document.getElementById("editDesc").value.trim(),
+      status: document.getElementById("editStatus").value,
+      priority: document.getElementById("editPriority").value,
+      due_date: document.getElementById("editDueDate").value,
+      assignee_id: document.getElementById("editAssignee").value
+    };
+
+    const res = await fetch(`/tasks/${id}/update`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (res.ok && data.ok) {
+      editModal.classList.add("hidden");
+      window.location.reload();
+    } else {
+      alert("Failed to update task.");
+    }
+  });
+
+});
+document.addEventListener("DOMContentLoaded", () => {
+  // safeDelete: central handler for delete buttons/forms
+  async function safeDelete(taskId) {
+    if (!taskId) { alert("Task id not found."); return; }
+    if (!confirm("Are you sure you want to delete this task?")) return;
+
+    try {
+      const res = await fetch(`/delete_task/${taskId}`, {
+        method: "POST",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          "Content-Type": "application/json"
+        },
+        credentials: "same-origin"
+      });
+
+      if (res.ok) {
+        // remove card if present
+        const card = document.querySelector(`.task-card[data-id="${taskId}"]`);
+        if (card) card.remove();
+        else console.log("Deleted on server, but card not found in DOM.");
+      } else {
+        console.error("Delete failed:", res.status, await res.text());
+        alert("Delete failed. Check console for details.");
+      }
+    } catch (err) {
+      console.error("Delete request error:", err);
+      alert("Network error while deleting. See console.");
+    }
   }
-}
+
+  // Attach event listeners to all .delete-btn buttons (delegation safe)
+  document.body.addEventListener("click", (e) => {
+    const btn = e.target.closest(".delete-btn");
+    if (!btn) return;
+
+    e.preventDefault();
+
+    // Find task id: prefer data-id, fall back to form action like /delete_task/123
+    let taskId = btn.getAttribute("data-id");
+    if (!taskId) {
+      const form = btn.closest("form");
+      if (form && form.action) {
+        const m = form.action.match(/\/delete_task\/(\d+)/);
+        if (m) taskId = m[1];
+      }
+    }
+
+    safeDelete(taskId);
+  });
+
+  // Prevent accidental full-form submission on any delete forms (progressive fallback)
+  document.querySelectorAll("form").forEach(f => {
+    // intercept forms that target /delete_task/<id>
+    if (f.action && /\/delete_task\/\d+/.test(f.action)) {
+      f.addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        const m = f.action.match(/\/delete_task\/(\d+)/);
+        const id = m ? m[1] : null;
+        safeDelete(id);
+      });
+    }
+  });
+
+  // Debug helper: print console errors so you can see if a prior script is failing
+  window.addEventListener("error", (ev) => {
+    console.error("Page error:", ev.message, "at", ev.filename + ":" + ev.lineno);
+  });
+
+});
+openBtn?.addEventListener("click", () => {
+  modal.classList.remove("hidden");
+  document.body.classList.add("modal-open");
+});
+
+closeBtn?.addEventListener("click", () => {
+  modal.classList.add("hidden");
+  document.body.classList.remove("modal-open");
+});
+
 
 </script>
+
+
 {% endblock %}

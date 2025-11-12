@@ -74,7 +74,7 @@ if on_railway:
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL").replace("postgres://", "postgresql://")
 else:
     # ✅ Use local SQLite
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////Users/sowmya/GearFlow/clean-app/instance/users.db"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////Users/sowmya/GearFlow/clean-app/instance/users_restored.db"
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -86,6 +86,9 @@ app.config['OAUTHLIB_INSECURE_TRANSPORT'] = LOCAL_HOST
 app.debug = True
 app.config['PROPAGATE_EXCEPTIONS'] = True
 app.config['SQLALCHEMY_ECHO']=True
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.jinja_env.cache = {}
 Session(app)
 
 # -------------------------------
@@ -105,6 +108,7 @@ app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+
 mail.init_app(app)
 
 def send_email(to_email, subject, body):
@@ -124,30 +128,37 @@ def send_email(to_email, subject, body):
         print(f"SendGrid error: {e}")
 
 def seed_data():
-    from src.models import db, User, Project, Task  # adjust import paths as needed
+    from datetime import datetime
+    from src.models import User, Project  # adjust import if models are in same file
 
-    # Avoid duplicate seeding
-    if User.query.first():
-        print("✅ Database already seeded.")
-        return
+    # Only seed if empty
+    if User.query.count() == 0:
+        print("🌱 Seeding initial data...")
 
-    # --- Create sample users ---
-    user1 = User(name="Alice", email="alice@example.com")
-    user2 = User(name="Bob", email="bob@example.com")
+        # Create an admin user first
+        admin = User(
+            name="Admin",
+            email="admin@example.com",
+            password="admin123",
+            role="admin"
+        )
+        db.session.add(admin)
+        db.session.commit()
 
-    # --- Create sample projects ---
-    project1 = Project(name="AI Research", description="Exploring ML models and deep learning.")
-    project2 = Project(name="Web App", description="Building a Flask + React project tracker.")
+        # ✅ Create a project owned by the admin
+        project1 = Project(
+            title="AI Research",
+            description="Exploring ML models and deep learning.",
+            owner_id=admin.id,   # ✅ This fixes the NOT NULL error
+            created_at=datetime.now()
+        )
+        db.session.add(project1)
+        db.session.commit()
 
-    # --- Create sample tasks ---
-    task1 = Task(title="Data Preprocessing", project=project1)
-    task2 = Task(title="Model Training", project=project1)
-    task3 = Task(title="Frontend UI", project=project2)
+        print("✅ Seeding completed successfully!")
+    else:
+        print("ℹ️ Database already seeded — skipping.")
 
-    db.session.add_all([user1, user2, project1, project2, task1, task2, task3])
-    db.session.commit()
-
-    print("🌱 Sample data added successfully!")
 
 # -------------------------------
 # DB init
@@ -155,11 +166,20 @@ def seed_data():
 db.init_app(app)
 migrate.init_app(app, db)
 
-db_path = os.path.join(os.path.dirname(__file__), "data.db")
+# ✅ Ensure the instance folder exists
+os.makedirs(app.instance_path, exist_ok=True)
+
+# ✅ Use the same database path Flask points to
+db_path = os.path.join(app.instance_path, "users_restored.db")
+
 if not os.path.exists(db_path):
+    print(f"🧱 Creating new database at: {db_path}")
     with app.app_context():
         db.create_all()
         seed_data()
+else:
+    print(f"✅ Using existing database: {db_path}")
+
 # -------------------------------
 # OAuth (Google)
 # -------------------------------
@@ -615,8 +635,9 @@ def add_task_to_project(project_id):
     if request.method == "POST":
         title = request.form.get("title")
         description = request.form.get("description")
-        assignee_id = request.form.get("assignee_id")or None
+        assignee_id = request.form.get("assignee_id") or None
         due_date_str = request.form.get("due_date")
+        priority = request.form.get("priority", "Medium")
 
         from datetime import datetime
         due_date = datetime.strptime(due_date_str, "%Y-%m-%d").date() if due_date_str else None
@@ -627,20 +648,35 @@ def add_task_to_project(project_id):
             project_id=project.id,
             assignee_id=assignee_id if assignee_id else None,
             due_date=due_date,
-            status="todo"
+            status="",
+            assigned_by_id=session["user_id"],
+            priority=priority
         )
         db.session.add(task)
         db.session.commit()
 
-        return jsonify({
-          "task": {
-            "id": task.id,
-            "title": task.title,
-            "description": task.description,
-            "assignee": task.assignee.name if task.assignee else "Unassigned",
-            "project": project.title
-        }
-    })
+        # ✅ Send email to assignee if provided
+        if assignee_id:
+            assignee = User.query.get(int(assignee_id))
+            if assignee and assignee.email:
+                subject = f"New Task Assigned: {title}"
+                body = f"""
+                <p>Hi {assignee.name or 'there'},</p>
+                <p>You’ve been assigned a new task in <b>{project.title}</b>.</p>
+                <p><b>Task:</b> {title}</p>
+                <p><b>Description:</b> {description or 'No description provided.'}</p>
+                <p><b>Due Date:</b> {due_date or 'Not specified'}</p>
+                <br>
+                <p>Login to your GearFlow dashboard to check your tasks.</p>
+                <p style="color:#555;">- The GearFlow Team</p>
+                """
+                send_email(assignee.email, subject, body)
+
+        flash("✅ Task created successfully!", "success")
+        return redirect(url_for("project_detail", project_id=project.id))
+    
+    return render_template("tasks/create_task.html", project=project, users=users)
+
 
 
 # -----------------------
@@ -648,6 +684,42 @@ def add_task_to_project(project_id):
 # -----------------------
 
 from datetime import datetime
+
+@app.route("/update_activity", methods=["GET", "POST"])
+def update_activity():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    user = User.query.get(session["user_id"])
+
+    if request.method == "POST":
+        activity = request.form.get("activity", "").strip()
+        if activity:
+            user.recent_activity = activity
+            db.session.commit()
+            flash("Activity updated successfully!", "success")
+        return redirect(url_for("profile"))
+
+    return render_template("profile/update_activity.html", user=user)
+
+@app.route("/admin/employees")
+def admin_employees():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    admin = User.query.get(session["user_id"])
+    if admin.role != "admin":
+        flash("Access denied.", "danger")
+        return redirect(url_for("dashboard"))
+
+    employees = User.query.filter(User.role != "admin").all()
+    return render_template("admin/employees.html", employees=employees)
+
+
+@app.route("/view_activities")
+def view_activities():
+    users = User.query.all()
+    return render_template("view_activities.html", users=users)
 
 
 @app.route("/my_tasks")
@@ -660,53 +732,266 @@ def my_tasks():
         flash("User not found")
         return redirect(url_for("login"))
 
+    # ✅ Force fresh data from the database
+    db.session.expire_all()
+
+    # ✅ Fetch fresh tasks and projects
     if user.role == "admin":
-        tasks = Task.query.all()
+        tasks = Task.query.order_by(Task.id.desc()).all()
+        projects = Project.query.order_by(Project.id.desc()).all()
     else:
-        tasks = Task.query.filter_by(assignee_id=user.id).all()
+        tasks = Task.query.filter_by(assignee_id=user.id).order_by(Task.id.desc()).all()
+        projects = Project.query.join(Task).filter(Task.assignee_id == user.id).order_by(Project.id.desc()).all()
 
     users = User.query.all()
-    return render_template("tasks/my_tasks.html", user=user, tasks=tasks, users=users)
+
+    return render_template(
+        "tasks/my_tasks.html",
+        user=user,
+        tasks=tasks,
+        users=users,
+        projects=projects
+    )
+
+@app.route("/my_tasks/add_task", methods=["POST"])
+def add_task_from_my_tasks():
+    if "user_id" not in session:
+        return jsonify({"error": "Not logged in"}), 403
+
+    current_user = User.query.get(session["user_id"])
+    data = request.get_json(force=True)
+
+    # ✅ Handle inline project creation
+    project_id = data.get("project_id")
+    new_project_title = data.get("new_project_title")
+    new_project_desc = data.get("new_project_desc")
+
+    if not project_id and new_project_title:
+        new_project = Project(
+            title=new_project_title,
+            description=new_project_desc,
+            owner_id=current_user.id
+        )
+        db.session.add(new_project)
+        db.session.commit()
+        project_id = new_project.id
+
+    if not project_id:
+        return jsonify({"error": "Please select or create a project."}), 400
+
+    # ✅ Handle Task fields
+    title = data.get("title")
+    description = data.get("description")
+    assignee_id = data.get("assignee_id") or None
+    priority = data.get("priority", "Medium")
+    due_date_str = data.get("due_date")
+
+    from datetime import datetime
+    due_date = None
+    if due_date_str:
+        try:
+            due_date = datetime.strptime(due_date_str, "%Y-%m-%d").date()
+        except:
+            pass
+
+    # ✅ Create Task
+    status = data.get("status", "todo")
+    task = Task(
+        title=title,
+        description=description,
+        project_id=int(project_id),
+        assignee_id=int(assignee_id) if assignee_id else None,
+        due_date=due_date,
+        status=status,
+        priority=priority,
+        assigned_by_id=current_user.id
+    )
+
+    db.session.add(task)
+    db.session.commit()
+
+    return jsonify({"success": True, "task_id": task.id})
+
+
+
+
 
 
 from flask import jsonify
 
-
-
-
-@app.route("/add_task", methods=["POST"])
+@app.route("/add_task", methods=["GET", "POST"])
 def add_task():
     if "user_id" not in session:
-        return jsonify({"error": "Not logged in"}), 403
+        return redirect(url_for("login"))
 
-    title = request.form.get("title")
-    description = request.form.get("description")
-    assignee_id = request.form.get("assignee_id")
-   
+    current_user = User.query.get(session["user_id"])
+    users = User.query.filter(User.role != "admin").all()
+    projects = Project.query.all()
 
-    due_date = request.form.get("due_date")
+    if request.method == "POST":
+        # --- Handle Project Selection or Creation ---
+        project_id = request.form.get("project_id")
+        new_project_title = request.form.get("new_project_title")
+        new_project_desc = request.form.get("new_project_desc")
 
-    new_task = Task(
-        title=title,
-        description=description,
-        assignee_id=assignee_id if assignee_id else None,
-        due_date=datetime.strptime(due_date, "%Y-%m-%d").date() if due_date else None,
-        status="todo",
-        assigned_by_id =session["user_id"]
+        # Create a new project if user typed one
+        if not project_id and new_project_title:
+            new_project = Project(
+                title=new_project_title,
+                description=new_project_desc,
+                owner_id=current_user.id
+            )
+            db.session.add(new_project)
+            db.session.commit()
+            project_id = new_project.id
+
+        # Validate project
+        if not project_id:
+            flash("⚠️ Please select or create a project before adding a task.", "danger")
+            return redirect(url_for("add_task"))
+
+        # --- Handle Task Details ---
+        title = request.form.get("title")
+        description = request.form.get("description")
+        assignee_id = request.form.get("assignee_id")
+        due_date_str = request.form.get("due_date")
+        priority = request.form.get("priority", "Medium")
+
+        # Convert due date safely
+        due_date = None
+        if due_date_str:
+            try:
+                from datetime import datetime
+                due_date = datetime.strptime(due_date_str, "%Y-%m-%d").date()
+            except ValueError:
+                flash("⚠️ Invalid date format.", "danger")
+                return redirect(url_for("add_task"))
+
+        # Role-based restrictions
+        if current_user.role != "admin":
+            # Employees can’t assign or change priority
+            assignee_id = current_user.id
+            priority = "Medium"
+
+        # --- Create the Task ---
+        status = request.form.get("status", "todo")
+        task = Task(
+            title=title,
+            description=description,
+            project_id=int(project_id),
+            assignee_id=int(assignee_id) if assignee_id else None,
+            due_date=due_date,
+            status=status,
+            priority=priority,
+            assigned_by_id=current_user.id
+        )
+        db.session.add(task)
+        db.session.commit()
+
+        # --- Send Email Notifications (if assigned) ---
+        if assignee_id:
+            assignee = User.query.get(int(assignee_id))
+            project = Project.query.get(int(project_id))
+            if assignee and assignee.email:
+                subject = f"New Task Assigned: {title}"
+                body = f"""
+                <p>Hi {assignee.name or 'there'},</p>
+                <p>You’ve been assigned a new task in <b>{project.title}</b>.</p>
+                <p><b>Task:</b> {title}</p>
+                <p><b>Description:</b> {description or 'No description provided.'}</p>
+                <p><b>Due Date:</b> {due_date or 'Not specified'}</p>
+                <p><b>Priority:</b> {priority}</p>
+                <br>
+                <p>Login to your GearFlow dashboard to check your tasks.</p>
+                <p style="color:#555;">- The GearFlow Team</p>
+                """
+                try:
+                    send_email(assignee.email, subject, body)
+                    print(f"📧 Email sent to {assignee.email}")
+                except Exception as e:
+                    print(f"❌ Failed to send email: {e}")
+
+        flash("✅ Task added successfully!", "success")
+        return redirect(url_for("my_tasks"))
+
+    # --- Render Page ---
+    return render_template(
+        "tasks/create_task_from_my_tasks.html",
+        projects=projects,
+        users=users,
+        current_user=current_user
     )
 
-    db.session.add(new_task)
+@app.route("/api/add_task", methods=["POST"])
+def add_task_api():
+    """JSON-based endpoint for AJAX Add Task (My Tasks page)"""
+    if "user_id" not in session:
+        return jsonify({"success": False, "error": "Not logged in"}), 403
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"success": False, "error": "Invalid JSON"}), 400
+
+    title = data.get("title")
+    description = data.get("description")
+    project_id = data.get("project_id")
+    new_project_title = data.get("new_project_title")
+    new_project_desc = data.get("new_project_desc")
+    assignee_id = data.get("assignee_id")
+    due_date_str = data.get("due_date")
+    priority = data.get("priority", "Medium")
+
+    current_user = User.query.get(session["user_id"])
+
+    # 🆕 Create new project if needed
+    if not project_id and new_project_title:
+        new_project = Project(
+            title=new_project_title,
+            description=new_project_desc,
+            owner_id=current_user.id
+        )
+        db.session.add(new_project)
+        db.session.commit()
+        project_id = new_project.id
+
+    if not project_id:
+        return jsonify({"success": False, "error": "Select or create a project."}), 400
+
+    from datetime import datetime
+    due_date = None
+    if due_date_str:
+        try:
+            due_date = datetime.strptime(due_date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({"success": False, "error": "Invalid date format."}), 400
+    status = data.get("status", "todo")
+    task = Task(
+        title=title,
+        description=description,
+        project_id=int(project_id),
+        assignee_id=int(assignee_id) if assignee_id else None,
+        due_date=due_date,
+        status=status,
+        priority=priority,
+        assigned_by_id=current_user.id
+    )
+    db.session.add(task)
     db.session.commit()
 
-       # ✅ optional: add notification
-    add_notification(assignee_id, f"New task '{title}' assigned to you!")
+    return jsonify({
+        "success": True,
+        "task": {
+            "id": task.id,
+            "title": task.title,
+            "description": task.description,
+            "due_date": task.due_date.strftime("%Y-%m-%d") if task.due_date else "",
+            "priority": task.priority,
+            "status": task.status
+        }
+    })
 
-    flash(f"Task '{title}' created successfully!", "success")
-    return redirect(url_for("my_tasks"))  # or wherever you list tasks
 
-  
-
-
+      
 
 @app.route("/update_task/<int:task_id>", methods=["POST"])
 def update_task(task_id):
@@ -716,27 +1001,51 @@ def update_task(task_id):
     task = Task.query.get_or_404(task_id)
     user = User.query.get(session["user_id"])
 
-    
+    # permission check
     if user.role != "admin" and task.assignee_id != user.id:
         flash("You can only edit your assigned tasks.", "danger")
         return redirect(url_for("my_tasks"))
 
+    # update fields every user may change
     task.title = request.form.get("title", task.title)
     task.description = request.form.get("description", task.description)
     task.status = request.form.get("status", task.status)
 
-   
+    # admin-only fields
     if user.role == "admin":
         task.assignee_id = request.form.get("assignee_id") or None
+
         due_date_str = request.form.get("due_date")
         if due_date_str:
-            task.due_date = datetime.strptime(due_date_str, "%Y-%m-%d").date()
+            try:
+                task.due_date = datetime.strptime(due_date_str, "%Y-%m-%d").date()
+            except ValueError:
+                flash("Invalid date format.", "danger")
+                return redirect(url_for("my_tasks"))
+
+        # IMPORTANT: update priority (was missing before)
+        priority = request.form.get("priority")
+        if priority:
+            task.priority = priority
 
     db.session.commit()
     flash("Task updated successfully!", "success")
     return redirect(url_for("my_tasks"))
 
 
+@app.route("/update_task_status/<int:task_id>", methods=["POST"])
+def update_task_status(task_id):
+    from flask import request, jsonify
+    data = request.get_json()
+    new_status = data.get("status")
+
+    task = Task.query.get(task_id)
+    if not task:
+        return jsonify({"error": "Task not found"}), 404
+
+    task.status = new_status
+    db.session.commit()
+    return jsonify({"message": "Status updated"}), 200
 
 @app.route("/task/<int:task_id>/json")
 def task_json(task_id):
@@ -796,8 +1105,6 @@ def task_details(task_id):
 
 # app.py
 
-
-
 @app.route("/tasks/<int:task_id>/update", methods=["POST"])
 def update_task_ajax(task_id):
     if "user_id" not in session:
@@ -819,9 +1126,15 @@ def update_task_ajax(task_id):
             return jsonify({"error": "invalid date"}), 400
     if "assignee_id" in data:
         task.assignee_id = int(data["assignee_id"]) if data["assignee_id"] else None
+    # add priority handling
+    if "priority" in data and data["priority"]:
+        task.priority = data["priority"]
 
     db.session.commit()
     return jsonify({"ok": True})
+
+
+
 
 
 @app.route("/delete_project/<int:project_id>", methods=["POST"])
@@ -872,30 +1185,65 @@ def create_task_from_my_tasks():
     if "user_id" not in session:
         return redirect(url_for("login"))
 
+    current_user = User.query.get(session["user_id"])
     projects = Project.query.filter_by(owner_id=session["user_id"]).all()
-    if not projects:
-        flash("You need to create a project before adding tasks!", "danger")
-        return redirect(url_for("projects"))
+    users = User.query.all()
 
     if request.method == "POST":
-        title = request.form["title"]
-        description = request.form.get("description")
-        due_date = request.form.get("due_date")
-        project_id = request.form["project_id"]
+        # Step 1 — Select or create project
+        project_id = request.form.get("project_id")
+        new_project_title = request.form.get("new_project_title")
+        new_project_desc = request.form.get("new_project_desc")
 
+        if not project_id and new_project_title:
+            new_project = Project(
+                title=new_project_title,
+                description=new_project_desc,
+                owner_id=current_user.id
+            )
+            db.session.add(new_project)
+            db.session.commit()
+            project_id = new_project.id
+
+        if not project_id:
+            flash("⚠️ Please select or create a project before adding a task.", "danger")
+            return redirect(url_for("create_task_from_my_tasks"))
+
+        # Step 2 — Task Details
+        title = request.form.get("title")
+        description = request.form.get("description")
+        assignee_id = request.form.get("assignee_id") or None
+        due_date_str = request.form.get("due_date")
+        priority = request.form.get("priority", "Medium")
+
+        from datetime import datetime
+        due_date = datetime.strptime(due_date_str, "%Y-%m-%d").date() if due_date_str else None
+
+        # Step 3 — Create the task
+        status = request.form.get("status", "todo")
         task = Task(
             title=title,
             description=description,
-            project_id=project_id,
-            assignee_id=session["user_id"],
-            due_date=due_date
-
+            project_id=int(project_id),
+            assignee_id=int(assignee_id) if assignee_id else None,
+            due_date=due_date,
+            status=status,
+            assigned_by_id=current_user.id,
+            priority=priority
         )
         db.session.add(task)
         db.session.commit()
+
+        flash("✅ Task created successfully!", "success")
         return redirect(url_for("my_tasks"))
 
-    return render_template("tasks/create_task_from_my_tasks.html", projects=projects)
+    return render_template(
+        "tasks/create_task_from_my_tasks.html",
+        projects=projects,
+        users=users,
+        current_user=current_user
+    )
+
 
 @app.route("/create_task_from_board", methods=["POST"])
 def create_task_from_board():
