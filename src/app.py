@@ -37,7 +37,7 @@ LOCAL_HOST = not IS_RAILWAY
 if IS_RAILWAY:
     GOOGLE_CLIENT_ID = os.getenv("PROD_GOOGLE_CLIENT_ID")
     GOOGLE_CLIENT_SECRET = os.getenv("PROD_GOOGLE_CLIENT_SECRET")
-    REDIRECT_URI = f"https://{os.environ.get('RAILWAY_STATIC_URL')}/login/google/authorized"
+    REDIRECT_URI = "https://web-production-1ac09.up.railway.app/login/google/authorized"
 else:
     GOOGLE_CLIENT_ID = os.getenv("LOCAL_GOOGLE_CLIENT_ID")
     GOOGLE_CLIENT_SECRET = os.getenv("LOCAL_GOOGLE_CLIENT_SECRET")
@@ -195,6 +195,7 @@ google = oauth.register(
 # -------------------------------
 # Google Login / Callback
 # -------------------------------
+
 @app.route("/login/google")
 def google_login():
     return google.authorize_redirect(REDIRECT_URI)
@@ -268,7 +269,15 @@ def debug_state():
     except Exception as e:
         return jsonify({"error": str(e)})
   
-   
+@app.route("/__debug_redirect")
+def debug_redirect():
+    from flask import jsonify, url_for
+    return jsonify({
+        "RAILWAY_STATIC_URL": os.getenv("RAILWAY_STATIC_URL"),
+        "REDIRECT_URI_env": os.getenv("REDIRECT_URI"),
+        "computed_redirect": url_for("google_authorized", _external=True)
+    })
+
 
 
 @app.route("/signup", methods=["GET", "POST"])
@@ -534,29 +543,6 @@ def all_profiles():
         pending_users=pending_users,
     )
 
-
-    token = google.authorize_access_token()
-    nonce = session.pop("nonce", None)
-    user_info = google.parse_id_token(token, nonce=nonce)
-
-    email = user_info.get("email")
-    name = user_info.get("name")
-
-    # Check if user already exists
-    user = User.query.filter_by(email=email).first()
-    if not user:
-        # Create new user if first Google login
-        user = User(email=email, name=name, password="")
-        db.session.add(user)
-        db.session.commit()
-
-    # Store user_id in session (so /profile works)
-    session["user_id"] = user.id
-    session["user_email"] = email
-    session["user_name"] = name
-
-    return redirect(url_for("profile"))
-
 # -----------------------
 # Project Routes
 # -----------------------
@@ -725,12 +711,12 @@ def view_activities():
 @app.route("/my_tasks")
 def my_tasks():
     if "user_id" not in session:
-        return redirect(url_for("login"))
+        return redirect(url_for("email_login"))
 
     user = User.query.get(session["user_id"])
     if not user:
         flash("User not found")
-        return redirect(url_for("login"))
+        return redirect(url_for("email_login"))
 
     # ✅ Force fresh data from the database
     db.session.expire_all()
