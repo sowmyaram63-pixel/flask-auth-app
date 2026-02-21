@@ -1,0 +1,55 @@
+
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Edit Profile</h2>
+
+<form action="" method="POST" enctype="multipart/form-data" class="profile-form">
+    
+    <label>Profile Picture</label><br>
+    {% if user.avatar_url %}
+        <img src="{{ user.avatar_url or '/static/default_avatar.png' }}"class="profile-img" width="100" height="100" style="border-radius:50%">
+
+    {% endif %}
+    <input type="file" name="avatar">
+
+    <br><br>
+
+    <label>Job Title</label>
+    <input type="text" name="job_title" value="{{ user.job_title }}" class="input-box">
+
+    <label>Team / Department</label>
+    <input type="text" name="team" value="{{ user.team }}" class="input-box">
+
+    <label>About Me</label>
+    <textarea name="about_me" class="input-box" rows="4">{{ user.about_me }}</textarea>
+
+    <br><br>
+    <button class="save-btn">Save</button>
+</form>
+
+<style>
+.profile-form {
+    width: 400px;
+}
+.input-box {
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    margin-bottom: 15px;
+}
+.save-btn {
+    background: #4c8bf5;
+    padding: 10px 18px;
+    color: white;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+}
+.save-btn:hover {
+    background: #3a6fd9;
+}
+</style>
+
+{% endblock %}

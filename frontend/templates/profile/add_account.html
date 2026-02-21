@@ -1,0 +1,68 @@
+
+{% extends "base.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/add_account.css') }}">
+
+<div class="add-account-container">
+
+    <h1 class="add-account-title">Add Another Account</h1>
+
+    <div class="add-card">
+
+        <p>You can add another login to easily switch between accounts.</p>
+
+        <a href="/login/google" class="google-add-btn">
+            <img src="https://developers.google.com/identity/images/g-logo.png" width="22">
+            Add Google Account
+        </a>
+
+        <div class="divider">or</div>
+
+        <a href="/signup" class="email-add-btn">Create new account with email</a>
+
+    </div>
+
+</div>
+<style>
+.add-account-page {
+    max-width: 550px;
+    margin: 40px auto;
+    padding: 24px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    font-family: system-ui, sans-serif;
+}
+
+.add-title {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.account-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px;
+    margin-top: 12px;
+    border-radius: 8px;
+    background: #f3f4f6;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.account-btn:hover {
+    background: #e5e7eb;
+}
+
+.account-btn img {
+    width: 22px;
+    height: 22px;
+}
+
+</style>
+{% endblock %}

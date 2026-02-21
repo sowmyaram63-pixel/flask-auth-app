@@ -1,0 +1,37 @@
+
+{% extends "base.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/invite.css') }}">
+
+<div class="invite-container">
+    <h1 class="invite-title">Invite teammates</h1>
+
+    <div class="invite-card">
+        <form method="POST" action="{{ url_for('invite') }}">
+            <label>Email address</label>
+            <input
+                type="email"
+                name="email"
+                placeholder="teammate@example.com"
+                required
+            >
+
+            <label>Role</label>
+            <select name="role">
+                <option value="member">Member</option>
+                <option value="admin">Admin</option>
+            </select>
+
+            <button type="submit" class="invite-btn">Send invite</button>
+        </form>
+
+        <p class="small-note">
+            They will receive an email invitation to join your workspace.
+        </p>
+    </div>
+</div>
+
+{% endblock %}
+
+

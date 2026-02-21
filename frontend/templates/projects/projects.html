@@ -1,0 +1,172 @@
+
+{% extends "base.html" %}
+{% block content %}
+
+<div class="projects-container">
+  <div class="projects-header">
+    <h2>My Projects</h2>
+    <button id="openProjectPanel" class="btn-primary">➕ Add Project</button>
+  </div>
+
+  <!-- Overlay -->
+  <div id="projectPanelOverlay" class="overlay hidden"></div>
+
+  <!-- Add Project Panel -->
+  <div id="projectPanel" class="side-panel hidden">
+    <div class="panel-header">
+      <h3>Create New Project</h3>
+      <button id="closeProjectPanel" class="close-btn">✖</button>
+    </div>
+
+    <form method="POST" action="{{ url_for('create_project') }}" class="project-form">
+      <label for="title">Project Title</label>
+      <input type="text" id="title" name="title" required>
+
+      <label for="description">Description</label>
+      <textarea id="description" name="description" rows="3"></textarea>
+
+      <button type="submit" class="btn-primary">Create</button>
+    </form>
+  </div>
+
+  <!-- Project List -->
+  <div class="project-list">
+    {% if projects %}
+      {% for project in projects %}
+      <div class="project-card">
+
+        <!-- Whole card clickable -->
+        <div class="project-content"
+             onclick="window.location.href='/projects/{{ project.id }}/overview'", project_id=project.id)>
+          <h3>{{ project.title }}</h3>
+          <p>{{ project.description or 'No description' }}</p>
+        </div>
+
+        <div class="project-actions">
+          <a href="/projects/{{ project.id }}/list" class="btn view-btn">View Tasks</a>
+
+          {% if user.role == 'admin' %}
+          <button onclick="deleteProject({{ project.id }})" class="delete-btn">Delete</button>
+          {% endif %}
+        </div>
+
+      </div>
+      {% endfor %}
+    {% else %}
+      <p>No projects found.</p>
+    {% endif %}
+  </div>
+</div>
+
+
+<style>
+/* Layout */
+.projects-container { padding: 2rem; }
+.projects-header {
+  display:flex; justify-content:space-between; align-items:center;
+}
+
+/* Buttons */
+.btn-primary {
+  background:#007bff; color:white; border:none;
+  padding:0.6rem 1.2rem; border-radius:8px; cursor:pointer;
+}
+.btn-primary:hover { background:#0056b3; }
+
+/* Overlay & Panel */
+.overlay {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.4);
+  opacity:0; visibility:hidden;
+  transition:0.3s ease;
+  z-index:1000;
+}
+.overlay.active { opacity:1; visibility:visible; }
+
+.side-panel {
+  position:fixed; top:0; right:0; width:400px; height:100%;
+  background:white;
+  box-shadow:-4px 0 12px rgba(0,0,0,0.2);
+  transform:translateX(100%);
+  transition:0.3s ease;
+  z-index:1001;
+  padding:24px;
+}
+.side-panel.active { transform:translateX(0); }
+
+.panel-header {
+  display:flex; justify-content:space-between; align-items:center;
+}
+.close-btn {
+  background:none; border:none; font-size:1.4rem; cursor:pointer; color:#555;
+}
+
+/* Project Cards */
+.project-list {
+  margin-top:1.5rem;
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+  gap:20px;
+}
+
+.project-card {
+  background:white;
+  box-shadow:0 2px 8px rgba(0,0,0,0.08);
+  border-radius:10px;
+  padding:20px;
+  transition:0.2s;
+}
+.project-card:hover {
+  transform:translateY(-3px);
+  background:#fafafa;
+}
+.project-content { cursor:pointer; }
+.project-actions {
+  margin-top:1rem;
+  display:flex; gap:10px;
+}
+
+.view-btn {
+  background:#28a745; color:white; padding:8px 14px;
+  border-radius:5px; text-decoration:none;
+}
+.delete-btn {
+  background:#dc3545; color:white; padding:8px 14px; border:none; border-radius:5px;
+}
+
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const openBtn = document.getElementById("openProjectPanel");
+  const closeBtn = document.getElementById("closeProjectPanel");
+  const panel = document.getElementById("projectPanel");
+  const overlay = document.getElementById("projectPanelOverlay");
+
+  function openPanel() {
+    panel.classList.add("active");
+    overlay.classList.add("active");
+  }
+  function closePanel() {
+    panel.classList.remove("active");
+    overlay.classList.remove("active");
+  }
+
+  openBtn.addEventListener("click", openPanel);
+  closeBtn.addEventListener("click", closePanel);
+  overlay.addEventListener("click", closePanel);
+});
+
+async function deleteProject(projectId) {
+  if (!confirm("Are you sure?")) return;
+
+  const res = await fetch(`/delete_project/${projectId}`, {
+    method: "POST",
+  });
+
+  if (res.ok) location.reload();
+  else alert("Failed to delete project.");
+}
+</script>
+
+{% endblock %}

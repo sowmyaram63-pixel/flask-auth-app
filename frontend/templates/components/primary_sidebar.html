@@ -1,0 +1,25 @@
+
+<!-- PRIMARY SIDEBAR -->
+<nav>
+
+    <a href="{{ url_for('home', sec='work') }}"
+       class="primary-item {% if section=='work' %}active{% endif %}">
+        💼 <span>Work</span>
+    </a>
+
+    <a href="{{ url_for('home', sec='plan') }}"
+       class="primary-item {% if section=='plan' %}active{% endif %}">
+        📅 <span>Plan</span>
+    </a>
+
+    <a href="{{ url_for('home', sec='workflow') }}"
+       class="primary-item {% if section=='workflow' %}active{% endif %}">
+        ⚙️ <span>Workflow</span>
+    </a>
+
+    <a href="{{ url_for('home', sec='company') }}"
+       class="primary-item {% if section=='company' %}active{% endif %}">
+        🏢 <span>Company</span>
+    </a>
+
+</nav>

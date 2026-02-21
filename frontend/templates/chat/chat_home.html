@@ -1,0 +1,587 @@
+
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+
+.chat-wrapper{
+  height:calc(100vh - 70px);
+  display:flex;
+  background:#f0f2f5;
+  font-family: system-ui;
+}
+
+/* LEFT CHAT LIST */
+.chat-left{
+  width:330px;
+  background:white;
+  border-right:1px solid #ddd;
+  display:flex;
+  flex-direction:column;
+}
+
+.chat-left-header{
+  padding:10px 14px;
+  display:flex;
+  justify-content:space-between;
+  font-weight:700;
+  border-bottom:1px solid #eee;
+}
+
+.chat-search{
+  margin:8px;
+  padding:8px 10px;
+  border-radius:20px;
+  border:1px solid #ccc;
+}
+
+.chat-list{
+  flex:1;
+  overflow-y:auto;
+}
+
+.chat-item{
+  padding:10px;
+  border-bottom:1px solid #f2f2f2;
+  cursor:pointer;
+}
+
+.chat-item:hover{ background:#f7f7f7; }
+
+.chat-item-row{ display:flex; align-items:center; gap:8px; }
+
+.group-avatar{
+  width:34px;height:34px;border-radius:50%;
+  background:#25d366;color:white;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* RIGHT SIDE */
+.chat-right{ flex:1; display:flex; flex-direction:column; }
+
+.chat-topbar{
+  padding:10px 14px;
+  border-bottom:1px solid #ddd;
+  background:white;
+  display:flex; justify-content:space-between; align-items:center;
+}
+
+#adminIcon{
+  width:16px;height:16px;
+  display:none;
+  background:url('https://cdn-icons-png.flaticon.com/512/8089/8089114.png') no-repeat center/contain;
+}
+
+/* messages */
+.messages{
+  flex:1;overflow-y:auto;
+  background:#e5ddd5;
+  padding:12px;
+}
+
+.message{
+  max-width:60%;
+  padding:8px 12px;
+  border-radius:12px;
+  margin-bottom:6px;
+}
+
+.me{ background:#dcf8c6; margin-left:auto; }
+.other{ background:white; }
+
+.input-box{
+  display:flex;padding:8px;background:#f7f7f7;gap:8px;
+}
+
+#chatInput{
+  flex:1;padding:8px 12px;border-radius:20px;border:1px solid #ccc;
+}
+
+/* overlay modal */
+.overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.45);
+  display:flex;align-items:center;justify-content:center;
+}
+
+.hidden{ display:none; }
+
+.modal{
+  background:white;width:430px;border-radius:14px;padding:14px;
+}
+
+.admin-icon{
+  width:14px;height:14px;
+  background:url('https://cdn-icons-png.flaticon.com/512/8089/8089114.png') no-repeat center/contain;
+  display:inline-block;
+}
+
+.member-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:4px 0;border-bottom:1px solid #eee;
+}
+
+.member-avatar{
+  width:26px;height:26px;border-radius:50%;
+  background:#0eab63;color:white;display:flex;align-items:center;justify-content:center;
+}
+.unread-badge{
+  background:#25d366;
+  color:white;
+  min-width:18px;
+  padding:2px 6px;
+  border-radius:10px;
+  font-size:11px;
+  font-weight:700;
+  display:inline-block;
+  text-align:center;
+}
+
+button{ cursor:pointer; }
+
+</style>
+
+<div class="chat-wrapper">
+
+  <!-- LEFT -->
+  <div class="chat-left">
+    <div class="chat-left-header">
+      Chats
+      <button id="openCreate">+</button>
+    </div>
+
+    <input id="searchChats" class="chat-search" placeholder="Search chat">
+
+    <div id="chatList" class="chat-list"></div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="chat-right">
+
+    <div class="chat-topbar">
+
+      <div>
+        <span id="roomTitle">Select chat</span>
+        <span id="adminIcon"></span>
+      </div>
+
+      <div>
+        <button id="renameBtn" style="display:none;">Rename</button>
+        <button id="openInfo">Group Info</button>
+      </div>
+    </div>
+
+    <div id="messages" class="messages"></div>
+
+    <div class="input-box">
+      <input id="chatInput" placeholder="Type a message">
+      <button id="sendBtn">Send</button>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- GROUP INFO PANEL -->
+<div id="groupInfo" class="overlay hidden">
+  <div class="modal" id="groupInfoBox">
+
+    <h3>Group info</h3>
+
+    <div id="youAdmin" style="display:none;color:green;font-size:13px;">
+      ✓ You are admin
+    </div>
+
+    <h4>Members</h4>
+    <div id="memberList"></div>
+
+    <button id="leaveBtn" style="margin-top:6px;background:#ffdddd;">
+      Leave group
+    </button>
+    <button id="deleteGroupBtn" style="background:#ff4444;color:white;margin-top:6px;">
+      Delete group
+    </button>
+
+
+    <hr>
+
+    <h4>Add members</h4>
+
+    <input id="userSearch" placeholder="Search user…"
+           style="width:100%;padding:6px;">
+
+    <div id="addUserList" style="max-height:140px;overflow-y:auto;"></div>
+
+    <button id="addSelectedBtn">Add selected</button>
+
+  </div>
+</div>
+
+<!-- CREATE CHAT -->
+<div id="createModal" class="overlay hidden">
+  <div class="modal">
+
+    <h3>Create chat</h3>
+
+    <label><input type="radio" name="ctype" value="dm" checked> Direct</label>
+    <label><input type="radio" name="ctype" value="group"> Group</label>
+
+    <input id="groupName" class="hidden" placeholder="Group name">
+
+    <div id="userList" style="max-height:200px;overflow-y:auto;"></div>
+
+    <button id="createBtn">Create</button>
+
+  </div>
+</div>
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+<script>
+
+const socket = io();
+
+let room = null;
+const myId = {{ current_user.id }};
+
+/* --------------------- UTIL -------------------*/
+
+function getInitials(t){
+ return (t||'?').split(" ").map(x=>x[0]).join("").toUpperCase().slice(0,2);
+}
+
+/* ---------------- CHAT LIST -------------------*/
+
+function loadChats(){
+ fetch("/api/chat/list")
+ .then(r=>r.json())
+ .then(chats=>{
+
+  document.getElementById("chatList").innerHTML =
+   chats.map(c=>`
+    <div class="chat-item" onclick="openRoom(${c.id}, '${c.name}')">
+      <div class="chat-item-row">
+        <div class="group-avatar">${getInitials(c.name)}</div>
+        <div style="flex:1">
+          <div class="name">${c.name}</div>
+          <div class="preview">${c.last||""}</div>
+        </div>
+        ${
+          c.unread > 0
+          ? `<span class="unread-badge">${c.unread}</span>`
+          : ""
+        }
+      </div>
+    </div>
+   `).join("");
+ });
+}
+
+document.addEventListener("DOMContentLoaded", loadChats);
+
+/* ---------------- OPEN ROOM -------------------*/
+function openRoom(id, name) {
+  room = id;
+  document.getElementById("roomTitle").innerText = name;
+
+  socket.emit("join_room", { room });
+
+  // load messages
+  fetch(`/api/chat/${room}/messages`)
+    .then(r => r.json())
+    .then(msgs => {
+      messages.innerHTML = "";
+      msgs.forEach(addMsg);
+
+      // mark unread as read
+      fetch(`/api/chat/${room}/read`, { method: "POST" })
+        .then(() => loadChats());
+    });
+
+  // load admin info
+  fetch(`/api/chat/${room}/members`)
+    .then(r => r.json())
+    .then(list => {
+      const me = list.find(x => x.id === myId);
+      const amIAdmin = me?.is_admin;
+
+      adminIcon.style.display = amIAdmin ? "inline-block" : "none";
+      renameBtn.style.display = amIAdmin ? "inline-block" : "none";
+    });
+
+  socket.emit("join", { room: id });
+}
+
+
+
+function addMsg(m){
+ messages.innerHTML += `
+  <div class="message ${m.user_id==myId?'me':'other'}">
+    <small>${m.user_name}</small><br>${m.content}
+  </div>`;
+ messages.scrollTop = messages.scrollHeight;
+}
+
+sendBtn.onclick = sendMessage;
+
+function sendMessage(){
+ if(!room) return;
+ const text=chatInput.value.trim();
+ if(!text) return;
+ socket.emit("send_message",{room_id:room,content:text});
+ chatInput.value="";
+}
+
+chatInput.addEventListener?.("keydown",e=>{
+ if(e.key==="Enter"){ sendMessage(); }
+});
+
+socket.on("receive_message",m=>{
+ if(m.room_id==room) addMsg(m);
+});
+
+/* ---------------- GROUP INFO PANEL -------------------*/
+
+openInfo.onclick=()=>{
+ if(!room) return alert("Open a chat first");
+ loadMembers();
+ loadAddable();
+ groupInfo.classList.remove("hidden");
+};
+
+groupInfo.onclick=e=>{
+ if(e.target===groupInfo) groupInfo.classList.add("hidden");
+};
+
+/* ---------------- MEMBER LIST -------------------*/
+
+function loadMembers(){
+
+ fetch(`/api/chat/${room}/members`)
+  .then(r=>r.json())
+  .then(list=>{
+
+   const amIAdmin=list.some(x=>x.id===myId && x.is_admin);
+
+   youAdmin.style.display = amIAdmin ? "block" : "none";
+
+   memberList.innerHTML =
+     list.map(m=>`
+       <div class="member-row">
+
+        <div>
+          <span class="member-avatar">${m.name[0]}</span>
+          ${m.name}
+          ${m.is_admin?'<span class="admin-icon"></span>':''}
+          ${m.id===myId?' (You)':''}
+        </div>
+
+        <div>
+          ${
+            amIAdmin && m.id!==myId
+            ? `
+              <button onclick="removeMember(${m.id})">Remove</button>
+              ${
+                m.is_admin
+                  ? `<button onclick="demote(${m.id})">Remove admin</button>`
+                  : `<button onclick="promote(${m.id})">Make admin</button>`
+              }
+            `
+            : ''
+          }
+        </div>
+
+       </div>
+     `).join("");
+
+  });
+}
+
+/* ---------------- ADMIN ACTIONS -------------------*/
+
+function promote(id){
+ fetch(`/api/chat/${room}/members/${id}/make_admin`,{method:"POST"})
+ .then(loadMembers);
+}
+
+function demote(id){
+ fetch(`/api/chat/${room}/members/${id}/remove_admin`,{method:"POST"})
+ .then(loadMembers);
+}
+
+function removeMember(id){
+ fetch(`/api/chat/${room}/members/${id}`,{method:"DELETE"})
+ .then(loadMembers);
+}
+
+/* ---------------- LEAVE GROUP -------------------*/
+
+leaveBtn.onclick=()=>{
+ if(!room) return;
+ fetch(`/api/chat/${room}/members/${myId}`,{method:"DELETE"})
+ .then(()=>{
+   room=null;
+   groupInfo.classList.add("hidden");
+   loadChats();
+ });
+};
+
+/* ---------------- ADD USERS SEARCH -------------------*/
+
+function loadAddable(){
+
+ Promise.all([
+  fetch(`/api/chat/${room}/members`).then(r=>r.json()),
+  fetch(`/api/users`).then(r=>r.json())
+ ])
+ .then(([members,users])=>{
+
+  const currentIds = members.map(m=>m.id);
+
+  window.allAddable =
+    users.filter(u=>!currentIds.includes(u.id));
+
+  renderAddSearch("");
+
+  userSearch.oninput = e =>
+    renderAddSearch(e.target.value.toLowerCase());
+
+ });
+
+}
+
+function renderAddSearch(q){
+ addUserList.innerHTML =
+  allAddable
+   .filter(u=>u.name.toLowerCase().includes(q))
+   .map(u=>`
+     <label>
+       <input type="checkbox" value="${u.id}">
+       ${u.name}
+     </label><br>
+   `).join("");
+}
+
+/* add selected */
+addSelectedBtn.onclick = ()=>{
+ const ids=[...document.querySelectorAll("#addUserList input:checked")]
+   .map(x=>x.value);
+
+ Promise.all(ids.map(id=>
+  fetch(`/api/chat/${room}/members`,{
+    method:"POST",
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({user_id:id})
+  })
+ )).then(()=>{loadMembers();loadAddable();});
+};
+
+/* ---------------- RENAME GROUP -------------------*/
+
+renameBtn.onclick=()=>{
+ const n=prompt("New group name:");
+ if(!n) return;
+ fetch(`/api/chat/${room}/rename`,{
+  method:"POST",
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({name:n})
+ }).then(()=>{roomTitle.innerText=n;loadChats();});
+};
+deleteGroupBtn.onclick = () => {
+
+  if (!room) return;
+
+  if (!confirm("Delete this group for everyone?")) return;
+
+  fetch(`/api/chat/${room}`, {
+    method: "DELETE"
+  })
+  .then(r => {
+    if (!r.ok) return r.json().then(j => { throw j });
+    return r.json();
+  })
+  .then(() => {
+    room = null;
+    groupInfo.classList.add("hidden");
+    loadChats();
+    messages.innerHTML = "";
+    roomTitle.innerText = "Select chat";
+  })
+  .catch(err => alert(err.error || "Failed to delete"));
+};
+openCreate.onclick = () => {
+  createModal.classList.remove("hidden");
+  loadUsersForCreate();
+};
+createModal.onclick = e => {
+  if (e.target === createModal) {
+    createModal.classList.add("hidden");
+  }
+};
+function loadUsersForCreate() {
+
+  fetch("/api/users")
+    .then(r => r.json())
+    .then(users => {
+
+      userList.innerHTML = users.map(u => `
+        <label>
+          <input type="checkbox" value="${u.id}">
+          ${u.name}
+        </label><br>
+      `).join("");
+    });
+}
+document.querySelectorAll("input[name='ctype']").forEach(r => {
+  r.onchange = () => {
+    if (r.value === "group") {
+      groupName.classList.remove("hidden");
+    } else {
+      groupName.classList.add("hidden");
+    }
+  };
+});
+
+createBtn.onclick = () => {
+
+  const type = document.querySelector("input[name='ctype']:checked").value;
+
+  const ids = [...document.querySelectorAll("#userList input:checked")]
+    .map(i => i.value);
+
+  if (!ids.length) {
+    alert("Select at least one user");
+    return;
+  }
+
+  const payload = { type, members: ids };
+
+  if (type === "group") {
+    payload.name = groupName.value || "New group";
+  }
+
+  fetch("/api/chat/create", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+    .then(r => r.json())
+    .then(() => {
+      createModal.classList.add("hidden");
+      loadChats();
+    });
+};
+searchChats.oninput = e => {
+  const q = e.target.value.toLowerCase();
+
+  [...document.querySelectorAll(".chat-item")].forEach(item => {
+    item.style.display =
+      item.innerText.toLowerCase().includes(q)
+        ? "block"
+        : "none";
+  });
+};
+
+</script>
+
+{% endblock %}

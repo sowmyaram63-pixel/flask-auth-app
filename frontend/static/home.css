@@ -1,0 +1,301 @@
+
+/* ========== CONTAINER LAYOUT ========== */
+.home-container {
+    padding: 32px 48px;
+    max-width: 1200px;
+    margin: 0 auto;
+    color: #1f1f1f;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ========== DATE + GREETING ========== */
+.home-header {
+    margin-bottom: 32px;
+}
+
+.home-date {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 6px;
+}
+
+.home-greeting {
+    font-size: 32px;
+    font-weight: 600;
+}
+
+/* ========== MAIN CARD ========== */
+.home-main-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    padding: 24px;
+    margin-bottom: 40px;
+}
+
+.home-card-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.home-user-circle {
+    width: 42px;
+    height: 42px;
+    background: #4f46e5;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.home-card-title {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+/* ========== TABS ========== */
+.home-task-tabs {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.task-tab {
+    background: transparent;
+    border: none;
+    font-size: 15px;
+    padding: 6px 10px;
+    cursor: pointer;
+    color: #6b7280;
+}
+
+.task-tab.active {
+    border-bottom: 2px solid #2563eb;
+    color: #2563eb;
+    font-weight: 600;
+}
+
+/* ========== TASK LIST ========== */
+.task-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 4px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.task-checkbox {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #d1d5db;
+    border-radius: 4px;
+    margin-right: 10px;
+}
+
+.task-title {
+    flex: 1;
+    font-size: 15px;
+}
+
+.task-due {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.empty-task-msg {
+    text-align: center;
+    padding: 20px;
+    color: #6b7280;
+}
+
+/* ========== LEARN SECTION ========== */
+.learn-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 18px;
+}
+
+.learn-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+}
+
+.learn-card {
+    background: #ffe8ef;
+    border-radius: 14px;
+    padding: 18px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    transition: 0.15s ease-in-out;
+}
+
+.learn-card:hover {
+    transform: translateY(-2px);
+}
+
+.learn-card-img {
+    height: 120px;
+    border-radius: 10px;
+    background-size: cover;
+    background-position: center;
+    margin-bottom: 8px;
+}
+
+.img1 { background-image: url("https://i.imgur.com/oQ9Cq07.png"); }
+.img2 { background-image: url("https://i.imgur.com/wtRek6i.png"); }
+.img3 { background-image: url("https://i.imgur.com/dzjXugv.png"); }
+
+.learn-card-title {
+    font-size: 15px;
+    font-weight: 600;
+}
+/* ===== HOME ADD TASK ===== */
+.home-add-task {
+    margin-top: 12px;
+}
+
+.add-task-link {
+    background: none;
+    border: none;
+    color: #2563eb;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 4px 0;
+}
+
+.add-task-link:hover {
+    text-decoration: underline;
+}
+
+.add-task-box {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.add-task-box input {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.add-task-box button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.hidden {
+    display: none;
+}
+.rem-section {
+  margin-bottom: 10px;
+}
+
+.rem-section ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 6px 0;
+}
+
+.rem-section li {
+  font-size: 14px;
+  padding: 4px 0;
+}
+
+.rem-section small {
+  color: #777;
+  margin-left: 6px;
+}
+
+.overdue strong {
+  color: #c0392b;
+}
+
+.today strong {
+  color: #e67e22;
+}
+
+.upcoming strong {
+  color: #2c3e50;
+}
+
+.empty {
+  color: #777;
+  font-size: 14px;
+}
+.dashboard-reminders{
+    background:#fff;
+    border-radius:14px;
+    padding:16px;
+    margin-top:18px;
+    box-shadow:0 10px 25px rgba(0,0,0,.05);
+}
+
+/* header */
+.rem-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+}
+
+.rem-title{
+    font-size:16px;
+    font-weight:600;
+}
+
+.rem-link{
+    font-size:13px;
+    color:#2563eb;
+    text-decoration:none;
+}
+
+/* section */
+.rem-section{
+    margin-bottom:12px;
+}
+
+.rem-label{
+    font-size:11px;
+    font-weight:600;
+    color:#2563eb;
+    letter-spacing:.5px;
+}
+
+/* reminder card */
+.rem-card{
+    background:#f4f7ff;
+    padding:10px 12px;
+    border-radius:10px;
+    margin-top:6px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.rem-text{
+    font-weight:500;
+}
+
+.rem-time{
+    font-size:12px;
+    color:#555;
+}
+
+/* empty */
+.rem-empty{
+    text-align:center;
+    color:#888;
+    padding:12px;
+}

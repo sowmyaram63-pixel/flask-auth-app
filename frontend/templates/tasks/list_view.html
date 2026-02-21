@@ -1,0 +1,46 @@
+
+{# frontend/templates/tasks/list_view.html #}
+<div class="list-view">
+
+  {# Top table header - Name / Due date / Collaborators / Project / Visibility #}
+  <div class="list-table-header">
+    <div class="col name">Name</div>
+    <div class="col due">Due date</div>
+    <div class="col collab">Collaborators</div>
+    <div class="col project">Project</div>
+    <div class="col vis">Visibility</div>
+  </div>
+
+  {# Sections (recently_assigned, do_today, do_next_week, do_later) #}
+  {% set sections = [
+     ('recently_assigned', 'Recently assigned'),
+     ('do_today', 'Do today'),
+     ('do_next_week', 'Do next week'),
+     ('do_later', 'Do later')
+  ] %}
+
+  <div class="list-sections">
+    {% for key, label in sections %}
+      <div class="section-block" data-section="{{ key }}">
+        <button class="section-toggle" aria-expanded="true">▾</button>
+        <h3 class="section-title">{{ label }}</h3>
+
+        <div class="section-body">
+          <div class="add-inline-row">
+            <input class="inline-input" placeholder="+ Add task..." data-section="{{ key }}" />
+            <button class="inline-add-btn" data-section="{{ key }}">Add</button>
+          </div>
+
+          {# loop tasks that belong to this section (grouped is provided by route) #}
+          {% for t in grouped.get(key, []) %}
+            {% include "tasks/_task_row.html" with context %}
+          {% else %}
+            <div class="empty">No tasks</div>
+          {% endfor %}
+        </div>
+
+      </div>
+    {% endfor %}
+  </div>
+
+</div>

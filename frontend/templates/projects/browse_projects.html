@@ -1,0 +1,168 @@
+
+{% extends "base.html" %}
+{% block content %}
+
+<div class="projects-header">
+    <h2 class="projects-title">
+        <i data-lucide="folder"></i>
+        Browse Projects
+    </h2>
+
+    <button class="create-btn" onclick="window.location.href='/projects/create'">
+        <i data-lucide="plus"></i>
+        Create project
+    </button>
+</div>
+
+<div class="search-row">
+    <input
+        type="text"
+        class="search-box"
+        placeholder="Find a project"
+    />
+</div>
+
+<table class="projects-table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Members</th>
+            <th>Last Modified</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for p in projects %}
+        <tr class="project-row">
+            <td>
+                <a href="/projects/{{ p.id }}/overview" class="project-link">
+                    <span class="project-icon">
+                        <i data-lucide="folder"></i>
+                    </span>
+                    {{ p.title }}
+                </a>
+            </td>
+
+            <td>
+                <div class="avatar-circle">
+                    {{ user.name[0]|upper }}
+                </div>
+            </td>
+
+            <td>
+                {{ p.created_at.strftime('%b %d, %Y') }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<style>
+/* Header */
+.projects-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.projects-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Create button */
+.create-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #4c8bf5;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.create-btn:hover {
+    background: #3a72d4;
+}
+
+/* Search */
+.search-row {
+    margin: 20px 0;
+}
+
+.search-box {
+    width: 300px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+/* Table */
+.projects-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.projects-table th {
+    text-align: left;
+    color: #6b7280;
+    font-weight: 500;
+    padding: 10px 6px;
+}
+
+.project-row td {
+    padding: 12px 6px;
+    border-bottom: 1px solid #eee;
+}
+
+/* Project link */
+.project-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    color: #111;
+    text-decoration: none;
+}
+
+.project-link:hover {
+    text-decoration: underline;
+}
+
+/* Folder icon */
+.project-icon {
+    width: 28px;
+    height: 28px;
+    background: #e0f2fe;
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.project-icon i {
+    width: 16px;
+    height: 16px;
+    color: #0369a1;
+}
+
+/* Member avatar */
+.avatar-circle {
+    background: #4c8bf5;
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+}
+</style>
+
+{% endblock %}

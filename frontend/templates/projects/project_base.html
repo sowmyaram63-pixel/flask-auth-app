@@ -1,0 +1,106 @@
+
+<div class="project-topbar">
+
+    <!-- Project Title -->
+    <h2 class="project-title">
+        <i data-lucide="folder"></i>
+        {{ project.title }}
+    </h2>
+
+    <!-- Project Tabs -->
+    <nav class="project-tabs">
+
+        <a href="{{ url_for('project_overview', project_id=project.id) }}"
+           class="project-tab {% if active_tab=='overview' %}active{% endif %}">
+            <i data-lucide="clipboard-list"></i>
+            Overview
+        </a>
+
+        <a href="/projects/{{ project.id }}/list"
+           class="project-tab {% if active_tab=='list' %}active{% endif %}">
+            <i data-lucide="list"></i>
+            List
+        </a>
+
+        <a href="{{ url_for('project_timeline', project_id=project.id) }}"
+           class="project-tab {% if active_tab=='timeline' %}active{% endif %}">
+            <i data-lucide="clock"></i>
+            Timeline
+        </a>
+
+        <a href="{{ url_for('project_dashboard', project_id=project.id) }}"
+           class="project-tab {% if active_tab=='dashboard' %}active{% endif %}">
+            <i data-lucide="bar-chart-3"></i>
+            Dashboard
+        </a>
+
+        <a href="{{ url_for('project_calendar', project_id=project.id) }}"
+           class="project-tab {% if active_tab=='calendar' %}active{% endif %}">
+            <i data-lucide="calendar"></i>
+            Calendar
+        </a>
+
+        <a href="{{ url_for('project_files', project_id=project.id) }}"
+           class="project-tab {% if active_tab=='files' %}active{% endif %}">
+            <i data-lucide="paperclip"></i>
+            Files
+        </a>
+
+    </nav>
+</div>
+<style>
+.project-topbar {
+    background: #ffffff;
+    padding: 18px 24px 12px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* Title */
+.project-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 14px;
+}
+
+/* Tabs container */
+.project-tabs {
+    display: flex;
+    gap: 22px;
+}
+
+/* Individual tab */
+.project-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-bottom: 8px;
+    text-decoration: none;
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 500;
+    border-bottom: 3px solid transparent;
+    transition: all 0.15s ease;
+}
+
+/* Icon sizing */
+.project-tab i {
+    width: 16px;
+    height: 16px;
+}
+
+/* Hover */
+.project-tab:hover {
+    color: #2563eb;
+}
+
+/* Active tab */
+.project-tab.active {
+    color: #2563eb;
+    font-weight: 600;
+    border-bottom-color: #2563eb;
+}
+
+</style>

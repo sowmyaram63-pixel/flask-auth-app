@@ -1,0 +1,83 @@
+
+{% extends "base.html" %}
+{% block content %}
+
+<div class="plans-container">
+
+  <!-- FREE PLAN -->
+  <div class="plan-card">
+    <h2>Free</h2>
+    <p>₹0 / month</p>
+    <ul>
+      <li>Basic features</li>
+      <li>Limited tasks</li>
+    </ul>
+
+    {% if not current_user.is_pro %}
+      <button disabled>Current Plan</button>
+    {% else %}
+      <form method="POST" action="/downgrade">
+        <button class="btn danger">Downgrade</button>
+      </form>
+    {% endif %}
+  </div>
+
+
+  <!-- PRO PLAN -->
+  <div class="plan-card pro">
+    <h2>Pro</h2>
+    <p>₹499 / month</p>
+    <ul>
+      <li>Unlimited tasks</li>
+      <li>Advanced chat</li>
+      <li>Priority support</li>
+    </ul>
+
+    {% if current_user.is_pro %}
+      <button disabled>Already Pro</button>
+    {% else %}
+      <form method="POST" action="/upgrade">
+        <button class="btn primary">Upgrade</button>
+      </form>
+    {% endif %}
+  </div>
+
+</div>
+
+<style>
+.plans-container{
+  display:flex;
+  gap:20px;
+}
+
+.plan-card{
+  width:250px;
+  padding:20px;
+  border:1px solid #ddd;
+  border-radius:12px;
+  text-align:center;
+}
+
+.plan-card.pro{
+  border:2px solid #4CAF50;
+}
+
+.btn{
+  padding:8px 16px;
+  border-radius:6px;
+  border:none;
+  cursor:pointer;
+}
+
+.primary{
+  background:#4CAF50;
+  color:white;
+}
+
+.danger{
+  background:#ff4d4d;
+  color:white;
+}
+</style>
+
+{% endblock %}

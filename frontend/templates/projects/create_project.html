@@ -1,0 +1,32 @@
+
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Create New Project</h2>
+
+<form action="" method="POST" class="form-box">
+    <label>Project Name</label>
+    <input name="title" class="input-box">
+
+    <label>Description</label>
+    <textarea name="description" class="input-box"></textarea>
+
+    <button class="save-btn">Create</button>
+</form>
+
+<style>
+.form-box { width: 350px; }
+.input-box {
+    width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;
+    margin-bottom: 15px;
+}
+.save-btn {
+    background: #4c8bf5;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+}
+</style>
+
+{% endblock %}

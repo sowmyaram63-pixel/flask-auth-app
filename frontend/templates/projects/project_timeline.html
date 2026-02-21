@@ -1,0 +1,46 @@
+
+{% extends "base.html" %}
+{% block content %}
+
+{% include "projects/project_topbar.html" with context %}
+
+<div class="timeline-wrapper">
+    <h3>Timeline</h3>
+
+    <table class="timeline-table">
+        <thead>
+            <tr>
+                <th>Task</th>
+                <th>Start</th>
+                <th>Due</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for t in tasks %}
+            <tr>
+                <td>{{ t.title }}</td>
+                <td>{{ t.due_date.strftime('%Y-%m-%d') if t.due_date else "—" }}</td>
+                <td>{{ t.status }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<style>
+.timeline-wrapper { padding: 25px; }
+.timeline-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 10px;
+}
+
+.timeline-table th, .timeline-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+</style>
+
+{% endblock %}

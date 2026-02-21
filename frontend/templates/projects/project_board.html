@@ -1,0 +1,67 @@
+
+{% extends "base.html" %}
+{% block content %}
+
+{% include "projects/project_topbar.html" with context %}
+
+<div class="board-container">
+
+    {% for column, items in columns.items() %}
+    <div class="board-column">
+        <h3>{{ column }}</h3>
+
+        {% for t in items %}
+        <div class="task-card draggable">
+            <h4>{{ t.title }}</h4>
+            <p>{{ t.description or "No description" }}</p>
+            <span class="badge {{ t.priority|lower }}">{{ t.priority }}</span>
+        </div>
+        {% endfor %}
+
+        <div class="add-card">+ Add task</div>
+    </div>
+    {% endfor %}
+
+</div>
+
+<style>
+.board-container {
+    display: flex;
+    gap: 20px;
+    padding: 25px;
+}
+
+.board-column {
+    background: #f7f7f7;
+    padding: 15px;
+    border-radius: 10px;
+    flex: 1;
+}
+
+.task-card {
+    background: #fff;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.add-card {
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    background: #e8e8e8;
+    border-radius: 6px;
+}
+.badge {
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 12px;
+}
+.badge.low { background: #d4f7d4; }
+.badge.medium { background: #ffe9b3; }
+.badge.high { background: #ffb3b3; }
+</style>
+
+{% endblock %}
+

@@ -1,0 +1,98 @@
+
+<div class="secondary-menu">
+
+    <!-- ALWAYS VISIBLE ITEMS -->
+    <a href="{{ url_for('home') }}" class="secondary-item">
+        <i data-lucide="home"></i>
+        <span>Home</span>
+    </a>
+
+    <a href="{{ url_for('inbox') }}" class="secondary-item">
+        <i data-lucide="inbox"></i>
+        <span>Inbox</span>
+    </a>
+
+    <hr>
+
+    <a href="{{ url_for('my_tasks') }}" class="secondary-item">
+        <i data-lucide="check-square"></i>
+        <span>My Tasks</span>
+    </a>
+
+    <a href="{{ url_for('browse_projects') }}" class="secondary-item">
+        <i data-lucide="folder"></i>
+        <span>Projects</span>
+    </a>
+
+    <!-- ✅ ADMIN ONLY -->
+    {% if current_user.is_authenticated and current_user.role == "admin" %}
+        <a href="{{ url_for('admin_overview') }}" class="secondary-item">
+            <i data-lucide="shield"></i>
+            <span>Admin Overview</span>
+        </a>
+    {% endif %}
+    <!-- Chat Box -->
+
+    
+    <a href="{{ url_for('chat_home') }}" class="secondary-item">
+        <i data-lucide="messages-square"></i>
+        <span>Chat</span>
+    </a>
+    <a href="{{ url_for('cockpit') }}" class="secondary-item" >
+        <i data-lucide="clock"></i>
+        <span>Cockpit</span>
+    </a>
+
+     
+    <!-- PROFILE SECTION -->
+    <div class="sidebar-profile-section">
+         
+        <a href="/subscriptions" class="secondary-item">
+            <i data-lucide="badge-indian-rupee"></i>
+            <span>Subscription</span>
+        </a>
+
+        <div class="sidebar-profile" id="sidebarProfileBtn">
+            {% if user and user.avatar_url %}
+                <img src="{{ user.avatar_url }}" class="sidebar-avatar">
+            {% else %}
+                <div class="sidebar-avatar-fallback">
+                    {{ (user.name or "?")[:1].upper() }}
+                </div>
+            {% endif %}
+            <span class="sidebar-profile-name">{{ user.name }}</span>
+        </div>
+
+        <div id="sidebarProfileMenu" class="sidebar-profile-menu">
+            <a href="{{ url_for('profile') }}">
+                <i data-lucide="user"></i>
+                <span>Profile</span>
+            </a>
+
+            <a href="{{ url_for('settings') }}">
+                <i data-lucide="settings"></i>
+                <span>Settings</span>
+                
+            </a>
+
+            <a href="{{ url_for('invite') }}">
+                <i data-lucide="user-plus"></i>
+                <span>Invite teammates</span>
+            </a>
+
+            <a href="{{ url_for('add_account') }}">
+                <i data-lucide="plus-circle"></i>
+                <span>Add another account</span>
+            </a>
+
+            <hr>
+
+            <a href="{{ url_for('logout') }}" class="logout">
+                <i data-lucide="log-out"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+
+    </div>
+
+</div>

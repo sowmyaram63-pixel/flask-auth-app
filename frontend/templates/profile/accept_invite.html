@@ -1,0 +1,26 @@
+
+{% extends "base.html" %}
+{% block content %}
+
+<div class="auth-card">
+  <h2>Join ZaynLevi</h2>
+
+  <p><strong>Email:</strong> {{ email }}</p>
+  <p><strong>Role:</strong> {{ role }}</p>
+
+  <form method="POST">
+    <input type="hidden" name="email" value="{{ email }}">
+    <input type="hidden" name="role" value="{{ role }}">
+
+    <label>Name</label>
+    <input name="name" required>
+
+    <label>Password</label>
+    <input type="password" name="password" required>
+
+    <button type="submit">Join Workspace</button>
+  </form>
+</div>
+
+{% endblock %}
+

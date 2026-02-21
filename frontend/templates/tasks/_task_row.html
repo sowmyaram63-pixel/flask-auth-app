@@ -1,0 +1,33 @@
+
+{# frontend/templates/tasks/_task_row.html #}
+<div class="task-row" data-task-id="{{ t.id }}">
+  <div class="col name">
+    <span class="task-checkbox">◯</span>
+    <span class="task-title">{{ t.title }}</span>
+  </div>
+
+  <div class="col due">
+    {% if t.due_date %}{{ t.due_date.strftime('%b %d') }}{% else %}&mdash;{% endif %}
+  </div>
+
+  <div class="col collab">
+    {% if t.assignee %}
+      <span class="avatar">{{ (t.assignee.name[:1] if t.assignee.name) or t.assignee.email[:1] }}</span>
+      <span class="collab-name">{{ t.assignee.name or t.assignee.email }}</span>
+    {% else %}
+      <span class="muted">Unassigned</span>
+    {% endif %}
+  </div>
+
+  <div class="col project">
+    {% if t.project %}
+      <span class="project-pill">{{ t.project.title }}</span>
+    {% else %}
+      <span class="muted">—</span>
+    {% endif %}
+  </div>
+
+  <div class="col vis">
+    <span class="status">{{ t.status }}</span>
+  </div>
+</div>

@@ -1,0 +1,105 @@
+
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='portfolios.css') }}">
+
+<div class="page-header">
+  <div class="page-left">
+    <h1>Portfolios</h1>
+    <div class="tabs">
+      <button class="tab active">Recent and starred</button>
+      <button class="tab">Browse all</button>
+    </div>
+  </div>
+
+  <div class="page-right">
+    <button id="createPortfolioBtn" class="btn-outline">Create portfolio</button>
+  </div>
+</div>
+
+<div class="page-body">
+  <section class="portfolio-section">
+    <div class="section-title">
+      <span>Recent portfolios</span>
+      <div class="section-controls">
+        <button class="icon-btn" title="Grid view">▦</button>
+      </div>
+    </div>
+
+    <div class="portfolio-grid">
+      <!-- new portfolio card -->
+      <div class="portfolio-tile new-tile" id="newPortfolioTile" role="button">
+        <div class="plus">+</div>
+        <div class="label">New portfolio</div>
+      </div>
+
+      <!-- example existing portfolio card(s) rendered from server -->
+      {% for p in portfolios %}
+      <a class="portfolio-tile folder-tile" href="{{ url_for('view_portfolio', portfolio_id=p.id) }}">
+        <div class="folder-graphic"></div>
+        <div class="label">{{ p.title }}</div>
+        <div class="meta">{{ p.project_count }} project{{ 's' if p.project_count != 1 }}</div>
+      </a>
+      {% else %}
+      <!-- if server passed none, nothing; keep new tile visible -->
+      {% endfor %}
+    </div>
+  </section>
+</div>
+
+<!-- Create Portfolio Modal -->
+<div id="createPortfolioModal" class="modal hidden">
+  <div class="modal-inner">
+    <h3>Create portfolio</h3>
+    <label>Portfolio name</label>
+    <input id="portfolioName" placeholder="Portfolio title" />
+    <div class="modal-actions">
+      <button id="cancelCreate" class="btn-muted">Cancel</button>
+      <button id="submitCreate" class="btn-primary">Create</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Open modal (from top-right button or the "new tile")
+  function openCreateModal() {
+    document.getElementById('createPortfolioModal').classList.remove('hidden');
+    document.getElementById('portfolioName').focus();
+  }
+  function closeCreateModal(){ document.getElementById('createPortfolioModal').classList.add('hidden'); }
+
+  document.getElementById('createPortfolioBtn').addEventListener('click', openCreateModal);
+  document.getElementById('newPortfolioTile').addEventListener('click', openCreateModal);
+  document.getElementById('cancelCreate').addEventListener('click', closeCreateModal);
+
+  // Create handler (client-side demo: POST to /portfolios/create)
+  document.getElementById('submitCreate').addEventListener('click', async () => {
+    const title = document.getElementById('portfolioName').value.trim();
+    if (!title) return alert('Enter a name');
+
+    try {
+      const res = await fetch('{{ url_for("create_portfolio") }}', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ title })
+      });
+      const data = await res.json();
+      if (data.success) {
+        // simplest: reload to get new portfolio from server
+        location.reload();
+      } else {
+        alert(data.error || 'Could not create portfolio');
+      }
+    } catch (e) {
+      alert('Network error: ' + e.message);
+    }
+  });
+
+  // close by clicking outside modal
+  window.addEventListener('click', (e) => {
+    const modal = document.getElementById('createPortfolioModal');
+    if (!modal.classList.contains('hidden') && e.target === modal) closeCreateModal();
+  });
+</script>
+
+{% endblock %}

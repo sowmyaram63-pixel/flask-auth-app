@@ -1,0 +1,79 @@
+
+<div class="files-wrapper">
+  <h3>Task Files</h3>
+
+  <!-- SINGLE UPLOAD BAR -->
+  <form id="taskFileForm" enctype="multipart/form-data">
+    <select name="task_id" required>
+      <option value="">Select task</option>
+      {% for t in tasks %}
+        <option value="{{ t.id }}">{{ t.title }}</option>
+      {% endfor %}
+    </select>
+
+    <input type="file" name="file" required>
+    <button type="submit" class="upload-btn">Upload</button>
+  </form>
+
+  <p id="uploadStatus" class="muted"></p>
+
+  <div class="file-list">
+    {% if files %}
+      {% for f in files %}
+        <div class="file-item">
+          <span>📄 {{ f.filename }}</span>
+          <a href="{{ f.url }}" download>Download</a>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="muted">No files yet</p>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+.files-wrapper { padding: 25px; }
+.upload-btn {
+  background: #2667ff;
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+}
+.file-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  background: #fff;
+  border-radius: 8px;
+  margin-top: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+</style>
+
+<script>
+const form = document.getElementById("taskFileForm");
+const status = document.getElementById("uploadStatus");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault(); // ⛔ STOP redirect
+
+  const formData = new FormData(form);
+
+  status.innerText = "Uploading...";
+
+  const res = await fetch("/tasks/files/upload", {
+    method: "POST",
+    body: formData
+  });
+
+  if (res.ok) {
+    status.innerText = "Uploaded successfully ✅";
+    location.reload();
+  } else {
+    status.innerText = "Upload failed ❌";
+  }
+});
+</script>
+
+

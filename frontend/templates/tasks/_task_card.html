@@ -1,0 +1,9 @@
+
+<div class="asana-task-card" data-id="{{ task.id }}">
+  <b>{{ task.title }}</b>
+  <p style="margin:0;font-size:0.85rem;color:#555;">{{ task.description or "No description" }}</p>
+
+  <span class="priority-tag {{ task.priority|lower }}">
+    {{ task.priority }}
+  </span>
+</div>
