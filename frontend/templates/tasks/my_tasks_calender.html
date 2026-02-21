@@ -1,0 +1,173 @@
+
+<style>
+.calendar-container {
+    margin-top: 20px;
+    padding: 10px;
+}
+
+/* Header */
+.calendar-topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+    font-weight: 600;
+    padding: 10px 0;
+}
+
+.cal-btn {
+    background: #e5e7eb;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 16px;
+}
+.cal-btn:hover {
+    background: #d1d5db;
+}
+
+/* Grid */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.calendar-day {
+    height: 130px;
+    border-right: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 6px;
+    position: relative;
+}
+
+.calendar-day:last-child {
+    border-right: none;
+}
+
+.day-header {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.day-num {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.add-task-btn-small {
+    margin-top: 5px;
+    font-size: 12px;
+    color: #3b82f6;
+    cursor: pointer;
+}
+.add-task-btn-small:hover {
+    text-decoration: underline;
+}
+
+/* Task pill */
+.calendar-pill {
+    background: #a5f3fc;
+    padding: 3px 8px;
+    margin-top: 4px;
+    border-radius: 6px;
+    font-size: 12px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+</style>
+
+<div class="calendar-container">
+
+    <div class="calendar-topbar">
+        <button class="cal-btn" id="prevMonth">&lt;</button>
+        <div id="monthLabel"></div>
+        <button class="cal-btn" id="nextMonth">&gt;</button>
+    </div>
+
+    <div class="calendar-grid" id="calendarGrid"></div>
+
+</div>
+
+<script>
+const tasks = {{ calendar_tasks|tojson|safe }};
+
+/* Helpers */
+function daysInMonth(month, year) {
+    return new Date(year, month + 1, 0).getDate();
+}
+
+function buildCalendar(month, year) {
+    const grid = document.getElementById("calendarGrid");
+    const label = document.getElementById("monthLabel");
+
+    grid.innerHTML = "";
+
+    label.innerHTML = `${new Date(year, month).toLocaleString("en-us",{month:'long'})} ${year}`;
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const totalDays = daysInMonth(month, year);
+
+    let squares = [];
+
+    // Empty cells before month starts
+    for (let i = 0; i < firstDay; i++) {
+        squares.push({ day: "", date: null });
+    }
+    // Month days
+    for (let d = 1; d <= totalDays; d++) {
+        squares.push({ day: d, date: `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}` });
+    }
+
+    squares.forEach(cell => {
+        const div = document.createElement("div");
+        div.className = "calendar-day";
+
+        if (cell.day) {
+            div.innerHTML = `
+                <div class="day-header">
+                    <span class="day-num">${cell.day}</span>
+                </div>
+                <div class="add-task-btn-small" onclick="openGlobalAdd()">+ Add task</div>
+            `;
+
+            // Render tasks in this cell
+            tasks.forEach(t => {
+                if (t.date === cell.date) {
+                    const pill = document.createElement("div");
+                    pill.className = "calendar-pill";
+                    pill.innerText = t.title;
+                    div.appendChild(pill);
+                }
+            });
+        }
+
+        grid.appendChild(div);
+    });
+}
+
+/* Navigation */
+let current = new Date();
+let month = current.getMonth();
+let year  = current.getFullYear();
+
+document.getElementById("prevMonth").onclick = () => {
+    month--;
+    if (month < 0) { month = 11; year--; }
+    buildCalendar(month, year);
+};
+
+document.getElementById("nextMonth").onclick = () => {
+    month++;
+    if (month > 11) { month = 0; year++; }
+    buildCalendar(month, year);
+};
+
+/* Initialize */
+buildCalendar(month, year);
+</script>

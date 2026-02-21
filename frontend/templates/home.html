@@ -1,0 +1,188 @@
+
+{% extends "base.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+
+<div class="home-container">
+
+    <!-- DATE + GREETING -->
+    <div class="home-header">
+        <div class="home-date">{{ current_date }}</div>
+        <div class="home-greeting">
+            Good {{ greeting_time }}, {{ user.name }}!
+        </div>
+    </div>
+
+    <!-- MAIN CARD -->
+    <section class="home-main-card">
+
+        <div class="home-card-header">
+            <div class="home-user-circle">{{ user.initials }}</div>
+            <div class="home-card-title">My tasks</div>
+        </div>
+
+        <!-- TABS -->
+        <div class="home-task-tabs">
+            <a href="/home?tab=upcoming"
+               class="task-tab {{ 'active' if active_tab =='upcoming' else '' }}">
+               Upcoming ({{ upcoming_count }})
+            </a>
+
+            <a href="/home?tab=today"
+               class="task-tab {{ 'active' if active_tab=='today' else '' }}">
+               Due today ({{ today_count }})
+            </a>
+
+            <a href="/home?tab=overdue"
+               class="task-tab {{ 'active' if active_tab =='overdue' else '' }}">
+               Overdue ({{ overdue_count }})
+            </a>
+
+            <a href="/home?tab=completed"
+               class="task-tab {{ 'active' if active_tab == 'completed' else '' }}">
+               Completed ({{ completed_count }})
+            </a>
+        </div>
+
+        <!-- TASK LIST -->
+        <div class="home-task-list">
+
+            {% if tasks %}
+                {% for t in tasks %}
+                  <div class="task-row">
+                      <div class="task-checkbox"></div>
+
+                      <div class="task-title">
+                        {{ t.title }}
+                      </div>
+
+                      <div class="task-date">
+                          {{ t.due_date.strftime('%b %d') if t.due_date }}
+                      </div>
+                  </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-task-msg">
+                    No {{ active_tab }} tasks
+                </div>
+            {% endif %}
+
+        </div>
+
+        <!-- REMINDERS WIDGET -->
+        <div class="dashboard-reminders">
+
+            <div class="rem-header">
+                <div class="rem-title">
+                    <h3>⏰ Reminders</h3>
+                </div>
+              
+                <a href="/cockpit" class="rem-link">View all</a>
+            </div>
+
+            {% if today_reminders %}
+                  <div class="rem-section">
+                    <span class="rem-label">TODAY</span>
+                    {% for r in today_reminders %}
+                      <div class="rem-card">
+                        <div class="rem-text">{{ r.text }}</div>
+                        <div class="rem-time">
+                            {{ r.remind_at.strftime("%I:%M %p") }}
+                        </div>
+
+                      </div>
+                    {% endfor %}
+                  </div>
+            {% endif %}
+
+            {% if upcoming_reminders %}
+              <div class="rem-section">
+                <span class="rem-label">UPCOMING</span>
+
+                {% for r in upcoming_reminders %}
+                  <div class="rem-card">
+                    <div class="rem-text">{{ r.text }}</div>
+                    <div class="rem-time">
+                        {{ r.remind_at.strftime("%d %b, %I:%M %p") }}
+                    </div>
+                  </div>
+                {% endfor %}
+              
+              </div>
+            {% endif %}
+
+            {% if not today_reminders and not upcoming_reminders %}
+                <div class="empty">
+                  No reminders pending
+                </div>
+            {% endif %}
+
+        </div>
+
+    </section>
+
+    <!-- LEARN SECTION -->
+    <h3 class="learn-title">Learn GearFlow</h3>
+
+    <div class="learn-grid">
+
+        <div class="learn-card">
+            <div class="learn-card-img img1"></div>
+            <div class="learn-card-title">Get started quickly</div>
+        </div>
+
+        <div class="learn-card">
+            <div class="learn-card-img img2"></div>
+            <div class="learn-card-title">Organize your work better</div>
+        </div>
+
+        <div class="learn-card">
+            <div class="learn-card-img img3"></div>
+            <div class="learn-card-title">Track your goals</div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const showBtn = document.getElementById("showAddTask");
+    const box = document.getElementById("addTaskBox");
+    const input = document.getElementById("homeTaskInput");
+    const addBtn = document.getElementById("addHomeTaskBtn");
+
+    if(!showBtn) return;
+
+    showBtn.onclick = () => {
+        box.classList.remove("hidden");
+        input.focus();
+        showBtn.style.display = "none";
+    };
+
+    async function createTask() {
+        const title = input.value.trim();
+        if (!title) return;
+
+        const res = await fetch("/my_tasks/add_task", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                title: title,
+                section: "home"
+            })
+        });
+
+        const data = await res.json();
+        if (data.success) location.reload();
+    }
+
+    addBtn.onclick = createTask;
+    input.addEventListener("keydown", e => {
+        if (e.key === "Enter") createTask();
+    });
+});
+</script>
+
+{% endblock %}

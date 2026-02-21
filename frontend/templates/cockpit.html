@@ -1,0 +1,344 @@
+
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+.cockpit-wrapper{
+  padding:18px;
+  font-family: system-ui;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap:16px;
+}
+
+.widget{
+  background:white;
+  border-radius:16px;
+  padding:16px;
+  box-shadow:0 10px 35px rgba(0,0,0,.06);
+}
+
+.widget h3{
+  margin-top:0;
+}
+
+#notesBox{
+  width:100%;
+  min-height:120px;
+  padding:8px;
+}
+
+.task-done{
+  text-decoration: line-through;
+  color:#888;
+}
+
+.rem-list{
+  list-style:none;
+  padding:0;
+  margin-top:10px;
+}
+
+.rem-list li{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 4px;
+  border-bottom:1px solid #eee;
+}
+
+.rem-time{
+  font-size:12px;
+  color:#666;
+}
+
+.rem-delete{
+  border:none;
+  background:none;
+  color:#cc0000;
+  cursor:pointer;
+}
+.dashboard-reminders{
+    background:#fff;
+    border-radius:16px;
+    padding:16px;
+    box-shadow:0 10px 25px rgba(0,0,0,.05);
+}
+
+/* header */
+.rem-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+}
+
+.rem-title{
+    font-size:16px;
+    font-weight:600;
+}
+
+/* inputs */
+.rem-input{
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid #ddd;
+    margin-bottom:10px;
+}
+
+.rem-actions{
+    display:flex;
+    gap:10px;
+}
+
+.rem-time-input{
+    flex:1;
+    padding:8px;
+}
+
+.rem-add-btn{
+    background:#2563eb;
+    color:white;
+    border:none;
+    padding:8px 14px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+/* section */
+.rem-section{
+    margin-top:14px;
+}
+
+.rem-label{
+    font-size:11px;
+    font-weight:600;
+    color:#2563eb;
+    letter-spacing:.5px;
+}
+
+/* card */
+.rem-card{
+    background:#f4f7ff;
+    padding:10px 12px;
+    border-radius:10px;
+    margin-top:6px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.rem-text{
+    font-weight:500;
+}
+
+.rem-time{
+    font-size:12px;
+    color:#555;
+}
+
+/* empty */
+.rem-empty{
+    text-align:center;
+    color:#888;
+    padding:14px;
+}
+
+</style>
+
+<div class="cockpit-wrapper">
+
+  <h2>Productivity Cockpit</h2>
+  <p>Good to see you back, {{ current_user.name }} ✨</p>
+
+  <div class="grid">
+
+    <!-- NOTES -->
+    <div class="widget">
+      <h3>📝 Notes</h3>
+      <textarea id="notesBox"
+        placeholder="Write your meeting notes here..."></textarea>
+    </div>
+
+    <!-- TASKS -->
+    <div class="widget">
+      <h3>☑ Personal To-Do</h3>
+      <input id="taskInput" placeholder="Add a task…"
+             style="width:100%;padding:6px">
+
+      <ul id="taskList"
+          style="list-style:none;padding:0;margin-top:8px"></ul>
+    </div>
+
+    <!-- REMINDERS -->
+    <div class="widget dashboard-reminders">
+        <div class="rem-header">
+            <div class="rem-title">
+                Personal Reminders
+            </div>
+        </div>
+        <input id="remText"
+           placeholder="What do I need to remember?"
+           class="rem-input">
+        <div class="rem-actions">
+          <input id="remTime" type="datetime-local" class="rem-time-input">
+          <button class="rem-add-btn" onclick="addReminder()">Add</button>
+        </div>
+        <div id="todayBlock"></div>
+        <div id="upcomingBlock"></div>
+        <div id="emptyBlock" class="rem-empty" style="display:none">
+            No reminders pending
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+/* -------- NOTES -------- */
+const notesBox = document.getElementById("notesBox");
+notesBox.value = localStorage.getItem("notes") || "";
+notesBox.oninput = () =>
+  localStorage.setItem("notes", notesBox.value);
+
+/* -------- TASKS -------- */
+let tasks = JSON.parse(
+  localStorage.getItem("cockpit_tasks") || "[]"
+);
+
+function saveTasks(){
+  localStorage.setItem(
+    "cockpit_tasks", JSON.stringify(tasks)
+  );
+}
+
+function renderTasks(){
+  taskList.innerHTML =
+    tasks.map((t,i)=>`
+      <li>
+        <label>
+          <input type="checkbox"
+            ${t.done?"checked":""}
+            onclick="toggleTask(${i})">
+          <span class="${t.done?'task-done':''}">
+            ${t.text}
+          </span>
+        </label>
+        <button onclick="deleteTask(${i})">✖</button>
+      </li>
+    `).join("");
+}
+
+function toggleTask(i){
+  tasks[i].done=!tasks[i].done;
+  saveTasks(); renderTasks();
+}
+
+function deleteTask(i){
+  tasks.splice(i,1);
+  saveTasks(); renderTasks();
+}
+
+taskInput.onkeydown = e =>{
+  if(e.key==="Enter" && taskInput.value.trim()){
+    tasks.push({
+      text:taskInput.value.trim(),
+      done:false
+    });
+    taskInput.value="";
+    saveTasks(); renderTasks();
+  }
+};
+
+renderTasks();
+function addReminder() {
+    const text = document.getElementById("remText").value.trim();
+    const time = document.getElementById("remTime").value;
+
+    if (!text || !time) {
+        alert("Please fill both fields");
+        return;
+    }
+
+    fetch("/api/reminders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            text: text,
+            remind_at: time
+        })
+    })
+    .then(res => res.json())
+    .then(() => {
+        document.getElementById("remText").value = "";
+        document.getElementById("remTime").value = "";
+        loadReminders();   // refresh list
+    });
+}
+function loadReminders() {
+    fetch("/api/reminders")
+    .then(res => res.json())
+    .then(list => {
+
+        const todayBox = document.getElementById("todayBlock");
+        const upcomingBox = document.getElementById("upcomingBlock");
+        const emptyBox = document.getElementById("emptyBlock");
+
+        todayBox.innerHTML = "";
+        upcomingBox.innerHTML = "";
+        emptyBox.style.display = "none";
+
+        if(list.length === 0){
+            emptyBox.style.display = "block";
+            return;
+        }
+
+        const now = new Date();
+
+        list.forEach(r => {
+
+            const time = new Date(r.remind_at);
+            const card = `
+              <div class="rem-card">
+                <div>
+                  <div class="rem-text">${r.text}</div>
+                  <div class="rem-time">
+                    ${time.toLocaleString()}
+                  </div>
+                </div>
+                <button onclick="deleteReminder(${r.id})">✖</button>
+              </div>
+            `;
+
+            if(time.toDateString() === now.toDateString()){
+                todayBox.innerHTML += card;
+            } else {
+                upcomingBox.innerHTML += card;
+            }
+        });
+    });
+}
+
+function deleteReminder(id) {
+    fetch("/api/reminders/" + id, {
+        method: "DELETE"
+    })
+    .then(() => loadReminders());
+}
+
+loadReminders();
+function markDone(id){
+  fetch(`/api/reminders/${id}/done`,{
+    method:"POST"
+  }).then(loadReminders);
+}
+
+loadReminders();
+
+</script>
+
+{% endblock %}

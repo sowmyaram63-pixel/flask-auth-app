@@ -1,0 +1,27 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="form-card">
+    <h2>🔢 Verify OTP</h2>
+    <p>Enter the 6-digit OTP sent to your email.</p>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST">
+        <div class="form-group">
+            <label>OTP</label>
+            <input type="text" name="otp" maxlength="6" required placeholder="123456">
+        </div>
+
+        <button type="submit" class="btn">Verify</button>
+    </form>
+
+    <p class="extra-links">
+        <a href="{{ url_for('forgot_password') }}">↺ Resend OTP</a>
+    </p>
+</div>
+{% endblock %}
+

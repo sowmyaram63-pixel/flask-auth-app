@@ -1,0 +1,75 @@
+
+{# my_tasks_list.html — list partial #}
+
+<div class="sections-wrapper">
+
+  {% set sections = {
+      "recently_assigned": "Recently assigned",
+      "do_today": "Do today",
+      "do_next_week": "Do next week",
+      "do_later": "Do later"
+  } %}
+
+  {% for key, label in sections.items() %}
+  <div class="section-block" data-section="{{ key }}">
+    <div class="section-header">
+      <span class="arrow">▾</span>
+      <h3>{{ label }}</h3>
+      <div style="margin-left:auto" class="muted">{{ grouped[key]|length if grouped[key] is defined else 0 }} tasks</div>
+    </div>
+
+    <div class="section-tasks">
+      {% if grouped[key] is defined and grouped[key]|length > 0 %}
+        {% for t in grouped[key] %}
+        <div class="task-row" data-id="{{ t.id }}">
+          <div>
+            <strong>{{ t.title }}</strong>
+            <div class="muted" style="font-size:13px">{{ t.description[:80] if t.description else "" }}</div>
+          </div>
+
+          <div class="muted right">
+            {% if t.due_date %}{{ t.due_date.strftime("%b %d") }}{% else %}—{% endif %}
+          </div>
+
+          <div class="collaborators">
+             {% if t.assignee %}
+                {% set name = (t.assignee.name or t.assignee.email) %}
+
+                <span class="collab-pill"
+                    style="background: {{ get_avatar_color(name) }}20;  /* light version */ 
+                           border: 1px solid {{ get_avatar_color(name) }};
+                           color: {{ get_avatar_color(name) }};">
+
+                    {{ name }}
+                </span>
+                {% else %}
+                   <span class="collab-pill" style="background:#e5e7eb; color:#555;">
+                      Unassigned
+                   </span>
+                {% endif %}
+          </div>
+
+          <div>
+            {% if t.project %}
+              <span class="project-pill">{{ t.project.title }}</span>
+            {% else %}
+              <span class="muted">—</span>
+            {% endif %}
+          </div>
+
+          <div class="right">
+            <span class="muted">{{ t.status }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p class="no-tasks">No tasks</p>
+      {% endif %}
+
+      <div class="inline-add-row-placeholder" style="margin-top:8px">
+        <a class="inline-add-task" onclick="openInlineAdd('{{ key }}')">+ Add task</a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>

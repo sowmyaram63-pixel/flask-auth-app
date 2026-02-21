@@ -1,0 +1,256 @@
+
+<!-- ============================
+     KANBAN BOARD WRAPPER
+============================= -->
+
+<div class="kanban-header">
+    <h2>Board</h2>
+  
+</div>
+
+<div class="kanban-container">
+
+    {% set sections = {
+        "recently_assigned": "Recently assigned",
+        "do_today": "Do today",
+        "do_next_week": "Do next week",
+        "do_later": "Do later"
+    } %}
+
+    {% for key, label in sections.items() %}
+    <div class="kanban-column" data-section="{{ key }}">
+
+        <div class="kanban-column-title">
+            {{ label }}
+        </div>
+
+        <div class="kanban-items">
+            {% for t in grouped[key] %}
+            <div class="kanban-card" draggable="true" data-task-id="{{ t.id }}">
+
+                <div class="kanban-card-title">{{ t.title }}</div>
+
+                <div class="kanban-card-meta">
+                    <div class="avatar-circle"
+                         style="background: {{ get_avatar_color(t.assignee.name if t.assignee else '') }}">
+                         {{ t.assignee.name[0]|upper if t.assignee }}
+                    </div>
+
+                    {% if t.project %}
+                    <span class="pill-project">{{ t.project.title }}</span>
+                    {% endif %}
+
+                    <span class="pill-status">{{ t.status }}</span>
+                </div>
+
+            </div>
+            {% endfor %}
+        </div>
+
+        <button class="kanban-add-btn" data-section="{{ key }}">+ Add task</button>
+    </div>
+    {% endfor %}
+
+</div>
+
+
+<!-- ============================================
+             CSS — Kadam Style Modern UI
+================================================ -->
+<style>
+
+.kanban-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 4px 18px;
+}
+
+.kanban-header h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.kanban-add-top {
+    background: #2563eb;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+
+.kanban-add-top:hover { background: #1d4ed8; }
+
+.kanban-container {
+    display: flex;
+    gap: 24px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+.kanban-column {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    width: 320px;
+    min-width: 300px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    max-height: 78vh;
+}
+
+.kanban-column-title {
+    font-size: 15px;
+    font-weight: 700;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #e5e7eb;
+    color: #111827;
+}
+
+.kanban-items {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.kanban-card {
+    background: #ffffff;
+    border: 1px solid #e6e8ec;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    cursor: grab;
+    transition: 0.2s ease;
+    box-shadow: 0px 3px 8px rgba(0,0,0,0.04);
+}
+
+.kanban-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.kanban-card.dragging { opacity: 0.55; transform: scale(0.97); }
+
+.kanban-card-title {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.kanban-card-meta {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.avatar-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #6366f1;
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.pill-project {
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.pill-status {
+    background: #ecfdf5;
+    color: #047857;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.kanban-add-btn {
+    margin-top: 14px;
+    padding: 10px;
+    text-align: left;
+    background: transparent;
+    border: none;
+    font-weight: 600;
+    font-size: 13px;
+    color: #2563eb;
+    cursor: pointer;
+}
+
+.kanban-add-btn:hover { color: #1e40af; }
+
+.kanban-column.drag-over {
+    outline: 2px dashed #60a5fa;
+    background: #f0f9ff;
+}
+
+</style>
+
+
+<!-- ============================================
+             DRAG & DROP JAVASCRIPT
+================================================ -->
+<script>
+document.querySelectorAll(".kanban-card").forEach(card => {
+    card.addEventListener("dragstart", () => {
+        card.classList.add("dragging");
+    });
+    card.addEventListener("dragend", () => {
+        card.classList.remove("dragging");
+    });
+});
+
+document.querySelectorAll(".kanban-items").forEach(list => {
+    list.addEventListener("dragover", e => {
+        e.preventDefault();
+        const dragging = document.querySelector(".dragging");
+        list.appendChild(dragging);
+    });
+});
+
+document.querySelectorAll(".kanban-column").forEach(col => {
+    col.addEventListener("dragover", e => {
+        e.preventDefault();
+        col.classList.add("drag-over");
+    });
+    col.addEventListener("dragleave", () => {
+        col.classList.remove("drag-over");
+    });
+    col.addEventListener("drop", e => {
+        e.preventDefault();
+        col.classList.remove("drag-over");
+
+        const task = document.querySelector(".dragging");
+        col.querySelector(".kanban-items").appendChild(task);
+
+        fetch("/update_task_section", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                task_id: task.dataset.taskId,
+                section: col.dataset.section
+            })
+        });
+    });
+});
+</script>

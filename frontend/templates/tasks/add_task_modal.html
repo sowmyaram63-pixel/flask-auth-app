@@ -1,0 +1,26 @@
+
+<div id="addTaskModal" class="modal hidden">
+  <div class="modal-content">
+    <h3 style="margin-top:0;">Add Task</h3>
+
+    <form id="addTaskForm" method="POST" action="/my_tasks/add_task">
+
+      <input type="text" name="title" placeholder="Task title" required>
+
+      <textarea name="description" placeholder="Description"></textarea>
+
+      <input type="date" name="due_date">
+
+      <select name="priority">
+        <option>Low</option>
+        <option>Medium</option>
+        <option>High</option>
+        <option>Urgent</option>
+      </select>
+
+      <button type="submit">Add</button>
+    </form>
+
+    <button id="closeModal" style="margin-top:10px;">Close</button>
+  </div>
+</div>

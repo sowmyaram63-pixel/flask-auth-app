@@ -1,0 +1,45 @@
+
+{% extends "base.html" %}
+{% block content %}
+
+{% include "projects/project_topbar.html" with context %}
+
+<div class="files-wrapper">
+    <h3>Project Files</h3>
+
+    <form action="/projects/{{ project.id }}/files/upload" method="POST" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <button class="upload-btn" type="submit">Upload</button>
+    </form>
+
+    <div class="file-list">
+        {% for f in files %}
+        <div class="file-item">
+            <span>📄 {{ f.filename }}</span>
+            <a href="{{ f.url }}" download>Download</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.files-wrapper { padding: 25px; }
+.upload-btn {
+    background: #2667ff;
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: none;
+}
+.file-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px;
+    background: #fff;
+    border-radius: 8px;
+    margin-top: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+</style>
+
+{% endblock %}

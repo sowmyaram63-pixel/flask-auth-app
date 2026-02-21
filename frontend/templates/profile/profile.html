@@ -1,0 +1,106 @@
+
+{% extends "base.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+
+<div class="asana-container">
+
+    <!-- ========== AVATAR UPLOAD FORM (works correctly) ========== -->
+    <form action="{{ url_for('upload_avatar') }}" method="POST" enctype="multipart/form-data">
+        <div class="profile-header">
+
+            <!-- AVATAR AREA -->
+            <div class="asana-avatar-area">
+
+                <label class="avatar-wrapper">
+                    {% if user.avatar_url %}
+                        <img src="{{ user.avatar_url }}" class="profile-avatar">
+                    {% else %}
+                        <div class="avatar-fallback" style="background-color: {{ user.avatar_color }}">
+                            {{ user.initials }}
+                        </div>
+                    {% endif %}
+
+                    <!-- Auto-submit on file select -->
+                    <input type="file" name="avatar" accept="image/*" hidden onchange="this.form.submit()">
+                    <span class="avatar-upload-btn">
+                        <i class="ri-camera-fill"></i>
+                    </span>
+                </label>
+
+            </div>
+
+            <!-- NAME + META -->
+            <div class="asana-info">
+
+                <h1 class="asana-name">{{ user.name or "Unnamed User" }}</h1>
+
+                <div class="asana-meta">
+                    <span>{{ user.job_title or "+ Add job title" }}</span>
+                    <span>{{ user.team or "+ Add team or dept." }}</span>
+                    <span>{{ user.about_me or "+ Add about me" }}</span>
+                </div>
+
+                <button type="button" id="editToggle" class="asana-edit-btn">
+                    Edit profile
+                </button>
+            </div>
+
+        </div>
+    </form>
+
+
+    <!-- ========== EDIT TEXT FIELDS (NO IMAGE HERE) ========== -->
+    <form action="{{ url_for('edit_profile') }}" method="POST">
+        <div class="asana-edit-panel" id="editPanel">
+
+            <div class="edit-row">
+                <label>Name</label>
+                <input type="text" name="name" value="{{ user.name }}">
+            </div>
+
+            <div class="edit-row">
+                <label>Job title</label>
+                <input type="text" name="job_title" value="{{ user.job_title }}">
+            </div>
+
+            <div class="edit-row">
+                <label>Team / department</label>
+                <input type="text" name="team" value="{{ user.team }}">
+            </div>
+
+            <div class="edit-row">
+                <label>About me</label>
+                <textarea name="about_me">{{ user.about_me }}</textarea>
+            </div>
+
+            <button type="submit" class="asana-save-btn">Save</button>
+        </div>
+    </form>
+
+
+
+
+    <!-- TASKS -->
+    <div class="asana-task-section">
+        <h2 class="asana-task-title">My tasks</h2>
+
+        {% for t in tasks %}
+            <div class="asana-task-item">
+                <span class="asana-check"></span>
+                <span class="t-title">{{ t.title }}</span>
+                <span class="t-date">{{ t.due_string() }}</span>
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<script>
+document.getElementById("editToggle").onclick = () => {
+    document.getElementById("editPanel").classList.toggle("open");
+};
+</script>
+
+{% endblock %}

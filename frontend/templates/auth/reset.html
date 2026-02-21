@@ -1,0 +1,21 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="form-card">
+    <h2>🔒 Reset Password</h2>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST">
+        <div class="form-group">
+            <label>New Password</label>
+            <input type="password" name="password" required>
+        </div>
+
+        <button type="submit" class="btn">Update Password</button>
+    </form>
+</div>
+{% endblock %}

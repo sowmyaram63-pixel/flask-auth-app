@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; background:#f7f7f7; padding:20px;">
+<div style="max-width:600px; margin:auto; background:white; padding:25px; border-radius:10px;">
+
+    <h2 style="color:#444;">⚡ {{ title }}</h2>
+    <p style="font-size:15px; color:#666;">{{ subtitle }}</p>
+
+    {% if overdue %}
+    <h3 style="color:#d9534f;">❗ Overdue Tasks</h3>
+    <ul>
+        {% for t in overdue %}
+        <li>
+            <strong>{{ t.title }}</strong> — Due {{ t.due_date }}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if due_today %}
+    <h3 style="color:#0275d8;">📅 Due Today</h3>
+    <ul>
+        {% for t in due_today %}
+        <li>
+            <strong>{{ t.title }}</strong> — {{ t.due_date }}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if due_soon %}
+    <h3 style="color:#f0ad4e;">⏳ Due Soon</h3>
+    <ul>
+        {% for t in due_soon %}
+        <li>
+            <strong>{{ t.title }}</strong> — {{ t.due_date }}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <div style="margin-top:25px; text-align:center;">
+        <a href="http://127.0.0.1:5002" 
+           style="padding:12px 20px; background:#2667ff; color:white; text-decoration:none; border-radius:6px;">
+           View in GearFlow
+        </a>
+    </div>
+
+</div>
+</body>
+</html>

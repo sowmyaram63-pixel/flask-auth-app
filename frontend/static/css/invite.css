@@ -1,0 +1,15 @@
+
+.invite-container {
+  max-width: 480px;
+  margin: 40px auto;
+}
+
+.invite-form {
+  display: flex;
+  gap: 8px;
+}
+
+.invite-form input {
+  flex: 1;
+  padding: 10px;
+}

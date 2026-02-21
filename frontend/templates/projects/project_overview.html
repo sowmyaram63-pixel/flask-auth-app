@@ -1,0 +1,196 @@
+
+{% extends "base.html" %}
+{% block content %}
+
+{% set active_tab = "overview" %}
+{% include "projects/project_base.html" with context %}
+
+<div class="overview-container">
+
+    <!-- Project Description -->
+    <div class="section-block">
+        <h3>
+            <i data-lucide="clipboard-list"></i>
+            Project Overview
+        </h3>
+        <p class="description">
+            {{ project.description or "No description provided for this project." }}
+        </p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="stats-grid">
+
+        <div class="stat-card">
+            <h4>Total Tasks</h4>
+            <p class="value">{{ tasks|length }}</p>
+        </div>
+
+        <div class="stat-card">
+            <h4>Completed</h4>
+            <p class="value">
+                {{ tasks|selectattr("status","equalto","done")|list|length }}
+            </p>
+        </div>
+
+        <div class="stat-card">
+            <h4>In Progress</h4>
+            <p class="value">
+                {{ tasks|selectattr("status","equalto","in-progress")|list|length }}
+            </p>
+        </div>
+
+        <div class="stat-card">
+            <h4>Todo</h4>
+            <p class="value">
+                {{ tasks|selectattr("status","equalto","todo")|list|length }}
+            </p>
+        </div>
+
+    </div>
+
+    <!-- Upcoming Tasks -->
+    <div class="section-block">
+        <h3 class="section-title">
+            <i data-lucide="calendar-clock"></i>
+            Upcoming Tasks
+        </h3>
+
+        {% set upcoming = tasks|selectattr("due_date")|list %}
+
+        {% if upcoming %}
+            <table class="upcoming-table">
+                <tr>
+                    <th>Name</th>
+                    <th>Assignee</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                </tr>
+
+                {% for t in upcoming %}
+                <tr>
+                    <td>{{ t.title }}</td>
+
+                    <td>
+                        {% if t.assignee %}
+                            {{ t.assignee.name }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if t.due_date %}
+                            {{ t.due_date.strftime('%b %d, %Y') }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <span class="status-pill {{ t.status }}">
+                            {{ t.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+
+        {% else %}
+            <p>No upcoming tasks.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+
+<!-- STYLES -->
+<style>
+.overview-container {
+    padding: 25px;
+}
+
+.section-block {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    margin-bottom: 25px;
+}
+
+.section-block h3 {
+    margin-bottom: 12px;
+}
+
+.description {
+    color: #555;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: #fafafa;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.stat-card h4 {
+    font-size: 15px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.stat-card .value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #2667ff;
+}
+
+.upcoming-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.upcoming-table th {
+    color: #666;
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 5px;
+}
+
+.upcoming-table td {
+    padding: 10px 5px;
+    border-bottom: 1px solid #eee;
+}
+
+.status-pill {
+    padding: 5px 10px;
+    border-radius: 8px;
+    color: white;
+    font-size: 12px;
+}
+
+.status-pill.todo { background: #999; }
+.status-pill.in-progress { background: #f0ad4e; }
+.status-pill.done { background: #5cb85c; }
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-title i {
+    width: 18px;
+    height: 18px;
+}
+
+</style>
+
+{% endblock %}

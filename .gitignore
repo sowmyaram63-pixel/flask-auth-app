@@ -1,4 +1,19 @@
 .venv/
 venv/
-pycache__/
+__pycache__/
 *.pyc
+
+# Local secrets and environment files
+.env
+.env.*
+
+# Local runtime/session data
+flask_session/
+instance/
+*.db
+frontend/static/uploads/*
+!frontend/static/uploads/company_logo.png
+
+# Tooling/cache
+.pytest_cache/
+.DS_Store

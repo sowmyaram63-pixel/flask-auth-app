@@ -1,0 +1,97 @@
+
+{% extends "base.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+<div class="chat-room-wrapper">
+
+    <!-- HEADER -->
+    <header class="room-header">
+        <div class="avatar-lg">
+            {{ room.name[:1] if room.name else "C" }}
+        </div>
+
+        <div>
+            <h2 class="room-title">
+                {% if room.type == 'dm' %}
+                    {% set other = members|selectattr("id","ne",current_user.id)|first %}
+                    {{ other.name if other else "Direct Message" }}
+                {% else %}
+                    {{ room.name }}
+                {% endif %}
+            </h2>
+            <span class="room-sub">
+                {{ room.type|upper }}
+            </span>
+        </div>
+    </header>
+
+    <!-- MESSAGES -->
+    <div id="messages" class="messages">
+
+        {% for m in messages %}
+            <div class="chat-bubble {% if m.user_id == current_user.id %}me{% else %}other{% endif %}">
+                <div class="sender">{{ m.user.name }}</div>
+                <div>{{ m.content }}</div>
+                <span class="time">{{ m.timestamp.strftime("%H:%M") }}</span>
+            </div>
+        {% endfor %}
+
+    </div>
+
+    <!-- INPUT -->
+    <form id="sendForm" class="input-bar">
+        <input id="messageInput" autocomplete="off" placeholder="Type a message...">
+        <button type="submit">Send</button>
+    </form>
+
+</div>
+
+<script>
+const socket = io();
+
+const ROOM_ID = "{{ room.id }}";
+const CURRENT_ID = {{ current_user.id }};
+
+socket.emit("join", { room: ROOM_ID });
+
+const msgList = document.getElementById("messages");
+const form = document.getElementById("sendForm");
+const input = document.getElementById("messageInput");
+
+// send realtime message
+form.addEventListener("submit", e => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if(!text) return;
+
+    socket.emit("send_message", {
+        room_id: ROOM_ID,
+        content: text
+    });
+
+    input.value = "";
+});
+
+// receive realtime
+socket.on("receive_message", data => {
+    const div = document.createElement("div");
+    div.classList.add("chat-bubble");
+    div.classList.add(data.user_id == CURRENT_ID ? "me" : "other");
+
+    div.innerHTML = `
+        <div class="sender">${data.user}</div>
+        <div>${data.content}</div>
+        <span class="time">${data.timestamp}</span>
+    `;
+
+    msgList.appendChild(div);
+    msgList.scrollTop = msgList.scrollHeight;
+});
+
+msgList.scrollTop = msgList.scrollHeight;
+</script>
+
+{% endblock %}

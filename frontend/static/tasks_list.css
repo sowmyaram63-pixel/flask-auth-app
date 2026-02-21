@@ -1,0 +1,801 @@
+
+/* static/tasks_list.css - compact Asana like list styling */
+.list-view {
+  max-width: 1150px;
+  margin: 18px auto 80px;
+  padding: 0 18px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  color: #222;
+}
+
+/* header row */
+.list-table-header {
+  display: grid;
+  grid-template-columns: 1.6fr 0.7fr 0.9fr 1fr 0.6fr;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #e9eef2;
+  align-items: center;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+/* section wrapper */
+.section-block {
+  margin-top: 18px;
+  padding-left: 6px;
+}
+
+/* section title and toggle */
+.section-title {
+  display: inline-block;
+  font-size: 1.05rem;
+  margin: 0 8px;
+  font-weight: 700;
+}
+.section-toggle {
+  background: none;
+  border: none;
+  font-size: 1.05rem;
+  cursor: pointer;
+  color: #333;
+  margin-right: 6px;
+}
+
+/* add-inline row */
+.add-inline-row {
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin: 12px 0;
+}
+.inline-input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid #e4e7eb;
+  background: #fff;
+}
+.inline-add-btn {
+  background: #1f6feb;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* task rows - grid columns match header */
+.task-row {
+  display: grid;
+  grid-template-columns: 1.6fr 0.7fr 0.9fr 1fr 0.6fr;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 12px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  margin-bottom: 8px;
+}
+.task-row:hover {
+  background: #fbfcfe;
+  border-color: #eff4fb;
+}
+
+/* columns */
+.col { display:flex; align-items:center; gap:10px; }
+.task-title { font-weight: 700; color:#222; }
+.avatar {
+  width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#e0ebff;color:#0b4ed6;font-weight:700;
+}
+.project-pill {
+  padding:6px 10px;border-radius:14px;background:#eef7f4;color:#0b7a66;font-weight:700;font-size:13px;
+}
+.status { font-size: 13px; color:#555; text-transform: lowercase; }
+
+/* empty state */
+.empty { color:#9aa5b2; font-style:italic; margin:8px 0 14px 22px; }
+
+/* small helpers */
+.muted { color:#9aa5b2; }
+.right-actions { float:right; }
+.add-task-btn { background:#1f6feb;color:white;border:none;padding:10px 14px;border-radius:8px;cursor:pointer; }
+/* -----------------------------------
+   GENERAL PAGE LAYOUT
+------------------------------------*/
+.tasks-page {
+    width: 92%;
+    margin: 0 auto;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Title */
+.tasks-title {
+    font-size: 26px;
+    font-weight: 700;
+    margin: 20px 0 8px;
+    color: #222;
+}
+
+/* -----------------------------------
+   TOP TABS (List | Board | Calendar | Files)
+------------------------------------*/
+.my-tasks-tabs {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    margin-top: 5px;
+}
+
+.left-tabs a {
+    margin-right: 32px;
+    text-decoration: none;
+    font-size: 16px;
+    color: #555;
+    transition: 0.2s ease;
+}
+
+.left-tabs a:hover {
+    color: #2f63ff;
+}
+
+.left-tabs a.active {
+    font-weight: 700;
+    color: #2f63ff;
+}
+
+/* -----------------------------------
+   ADD TASK BUTTON + DROPDOWN
+------------------------------------*/
+.add-task-dropdown-wrapper {
+    position: relative;
+}
+
+.add-task-top {
+    background: #2f63ff;
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.add-task-top:hover {
+    background: #244ed8;
+}
+
+.add-task-top:active,
+.add-task-top:focus {
+    background: #2f63ff !important;
+    color: #fff !important;
+    outline: none !important;
+}
+
+.caret {
+    font-size: 11px;
+    opacity: 0.9;
+}
+
+/* Dropdown menu */
+.add-task-dropdown {
+    position: absolute;
+    right: 0;
+    width: 180px;
+    background: white;
+    border-radius: 8px;
+    margin-top: 6px;
+    display: none;
+    border: 1px solid #e4e4e4;
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.08);
+    z-index: 20;
+}
+
+.dropdown-item {
+    padding: 10px 14px;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dropdown-item:hover {
+    background: #f1f4ff;
+}
+
+/* -----------------------------------
+   TABLE HEADER
+------------------------------------*/
+.list-table-header {
+    display: grid;
+    grid-template-columns: 1.5fr 0.9fr 1fr 1fr 0.9fr;
+    font-weight: 600;
+    color: #444;
+    padding: 13px 0 8px;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 4px;
+}
+
+/* -----------------------------------
+   SECTIONS & TASKS
+------------------------------------*/
+.sections-wrapper {
+    margin-top: 10px;
+}
+
+/* section */
+.section-block {
+    margin-top: 24px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 8px 0;
+}
+
+.section-header h3 {
+    font-size: 17px;
+    font-weight: 600;
+}
+
+/* task rows */
+.task-row {
+    display: grid;
+    grid-template-columns: 1.5fr 0.9fr 1fr 1fr 0.9fr;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333;
+    transition: 0.2s ease;
+}
+
+.task-row:hover {
+    background: #fafcff;
+}
+
+/* empty text */
+.no-tasks {
+    color: #999;
+    font-style: italic;
+    font-size: 14px;
+    margin: 5px 0;
+}
+
+/* add task under section */
+.add-under-section {
+    margin-top: 5px;
+    font-size: 14px;
+    color: #2f63ff;
+    cursor: pointer;
+    font-weight: 500;
+}
+.add-under-section:hover {
+    text-decoration: underline;
+}
+/* -------------------------
+   TABS
+-------------------------- */
+.tabs-left a {
+    margin-right: 28px;
+    text-decoration: none;
+    color: #777;
+    font-size: 15px;
+    padding-bottom: 4px;
+    transition: color 0.2s ease;
+}
+
+.tabs-left a:hover {
+    color: #2f63ff;
+}
+
+.tabs-left a.active {
+    color: #2f63ff;
+    font-weight: 700;
+    border-bottom: 2px solid #2f63ff;
+}
+
+/* -------------------------
+   TABLE HEADER
+-------------------------- */
+.table-header {
+    display: grid;
+    grid-template-columns: 1.5fr 0.8fr 1fr 1fr 0.8fr;
+    padding: 12px 10px;
+    background: #fafafa;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    font-weight: 600;
+    color: #444;
+}
+
+/* -------------------------
+   SECTIONS
+-------------------------- */
+.section-block {
+    padding: 12px 0;
+    border-bottom: 1px solid #e7e7e7; /* section divider */
+}
+
+/* SECTION HEADER */
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.section-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #333;
+}
+
+.arrow {
+    font-size: 14px;
+    color: #666;
+}
+
+/* -------------------------
+   TASK ROWS
+-------------------------- */
+.task-row {
+    display: grid;
+    grid-template-columns: 1.6fr 0.7fr 1fr 1fr 0.7fr;
+    padding: 12px 0;
+    border-bottom: 1px solid #f2f2f2;
+    align-items: center;
+    font-size: 15px;
+}
+
+.task-row:hover {
+    background: #fafcff;
+}
+
+/* Title */
+.task-title {
+    font-weight: 600;
+    color: #222;
+}
+
+/* Due date */
+.task-date {
+    color: #666;
+.task-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.task-radio {
+    font-size: 18px;
+    color: #bbb;
+}
+.add-task-row {
+    color: #4a68f0;
+    font-size: 15px;
+    cursor: pointer;
+    padding: 8px 4px;
+    margin-top: 4px;
+}
+.add-task-row:hover {
+    background: #f5f7ff;
+    border-radius: 6px;
+}
+.task-title {
+    font-weight: 600;
+    color: #222;
+}
+
+.no-tasks {
+    color: #999;
+    font-style: italic;
+    margin-left: 6px;
+}
+.inline-add-row {
+    display: flex;
+    gap: 10px;
+    margin: 12px 0;
+}
+.inline-input {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+.inline-add-btn {
+    background: #4a68f0;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+.inline-add-btn:hover {
+    background: #3c56d8;
+}
+/* -------------------------
+   ADD UNDER SECTION
+-------------------------- */
+.add-under-section {
+    margin-top: 6px;
+    margin-left: 10px;
+    font-size: 14px;
+    color: #2f63ff;
+    cursor: pointer;
+    padding: 4px 0;
+    width: max-content;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+.add-under-section:hover {
+    background: #eef3ff;
+    text-decoration: underline;
+}
+
+.avatar-pill {
+    width: 28px;
+    height: 28px;
+    background: #e1ebff;
+    color: #356ae6;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.assignee-name {
+    color: #333;
+    font-weight: 500;
+}
+
+/* ========== PROJECT PILL ========== */
+.project-pill {
+    padding: 5px 12px;
+    background: #e9f7f1;
+    color: #237b57;
+    font-weight: 600;
+    border-radius: 12px;
+    font-size: 13px;
+}
+
+/* Status */
+.task-status {
+    color: #666;
+    font-size: 14px;
+}
+.avatar-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+
+    flex-shrink: 0;
+}
+
+/* Name next to avatar */
+.task-collab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.collab-name {
+    font-size: 14px;
+    color: #333;
+}
+
+.collab-pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    line-height: 1;
+}
+/* Board layout (no product names used) */
+
+.board-grid {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 20px 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* each column */
+.board-column {
+  background: #f8fafb;         /* soft background for column */
+  border: 1px solid #eceff1;
+  border-radius: 10px;
+  width: 300px;               /* column width */
+  min-width: 260px;
+  padding: 12px;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02);
+  display: flex;
+  flex-direction: column;
+  max-height: 75vh;
+}
+
+/* column title row */
+.column-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: #222;
+  padding: 8px 6px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+/* small badge on the right for counts */
+.column-count {
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* list area inside column */
+.column-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding-bottom: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* card style */
+.board-card {
+  background: #ffffff;
+  border: 1px solid #eef2f6;
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: 0 6px 18px rgba(16, 24, 40, 0.04);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  cursor: grab;
+}
+
+/* hover and active */
+.board-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(16, 24, 40, 0.06);
+}
+
+/* title inside card */
+.board-card .card-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #0f1724;
+  margin-bottom: 8px;
+}
+
+/* metadata row (date, assignee, project, status) */
+.board-card .card-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* small pill for project or status */
+.pill {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #e9faf0; /* neutral default */
+  color: #064e3b;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* avatar chip — circular initial */
+.avatar-chip {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 13px;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.04) inset;
+  flex: 0 0 32px;
+}
+
+/* collapsed/empty column look for add-task area */
+.column-empty {
+  background: transparent;
+  border-radius: 8px;
+  padding: 10px 8px;
+  color: #64748b;
+  font-style: italic;
+}
+
+/* add task button inline in column */
+.add-column-task {
+  margin-top: 8px;
+  background: transparent;
+  border: none;
+  color: #2563eb;
+  font-weight: 700;
+  padding: 10px 6px;
+  cursor: pointer;
+  text-align: left;
+}
+
+/* placeholder empty text */
+.empty {
+  color: #9ca3af;
+  font-style: italic;
+  padding: 8px 6px;
+}
+
+/* Drag over visual */
+.column-drop-over {
+  outline: 2px dashed rgba(37,99,235,0.18);
+  background: rgba(37,99,235,0.02);
+}
+
+/* card being dragged */
+.card-dragging {
+  opacity: 0.6;
+  transform: scale(0.98);
+  box-shadow: 0 14px 38px rgba(16,24,40,0.12);
+}
+
+/* responsive: stack columns on narrow screens */
+@media (max-width: 900px) {
+  .board-grid {
+    padding-left: 12px;
+  }
+  .board-column {
+    width: 260px;
+    min-width: 220px;
+  }
+}
+
+/* small polish for scrollbar in columns */
+.board-column::-webkit-scrollbar {
+  width: 8px;
+}
+.board-column::-webkit-scrollbar-thumb {
+  background: rgba(16,24,40,0.06);
+  border-radius: 8px;
+}
+
+/* Inline add row (when you click +Add task to create inline input) */
+.inline-add-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+.inline-add-row .inline-input {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+}
+.inline-add-row .inline-add-btn {
+  background: #10b981;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.inline-add-row .inline-cancel {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+/* small utility */
+.u-center { text-align:center; }
+/* CALENDAR LAYOUT */
+.calendar-wrapper {
+    margin-top: 20px;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 15px;
+    padding: 10px 5px;
+    margin-bottom: 15px;
+}
+
+.calendar-header #calendarMonth {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.calendar-nav {
+    border: 1px solid #ddd;
+    background: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border-top: 1px solid #eee;
+    border-left: 1px solid #eee;
+}
+
+.calendar-day {
+    height: 220px;
+    border-right: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    padding: 6px;
+    position: relative;
+    background: #fcfcfc;
+}
+
+.calendar-day-header {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.calendar-day .add-task {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #3b82f6;
+    cursor: pointer;
+}
+
+.calendar-task {
+    position: absolute;
+    top: 40px;
+    left: 4px;
+    background: #a5f3fc;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border-left: 4px solid #0ea5e9;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.calendar-task.span {
+    position: absolute;
+    height: 36px;
+}
+.sidebar-profile-menu a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}

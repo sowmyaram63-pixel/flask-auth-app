@@ -1,0 +1,375 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title or "GearFlow" }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='layout.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='uploads/company_logo.png') }}">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
+</head>
+
+<body>
+
+<!-- ========== TOP NAVBAR ========== -->
+<header class="topbar">
+
+    <!-- LEFT SECTION -->
+    <div class="topbar-left">
+        <button class="menu-toggle" id="menuToggle">
+            <i data-lucide="menu"></i>
+        </button>
+
+        <img src="{{ url_for('static', filename='uploads/company_logo.png') }}" class="logo">
+
+        <span class="app-name">ZAYN LEVI</span>
+        
+    </div>
+
+    <!-- CENTER SEARCH -->
+    <div class="topbar-center">
+        <input placeholder="Search" class="search-bar">
+    </div>
+
+    <!-- RIGHT SECTION -->
+    <div class="topbar-right">
+
+        <!-- PROFILE DROPDOWN -->
+        <div class="profile-dropdown">
+
+            <div id="profileBtn" class="nav-profile-btn">
+                {% if user %}
+                    {% if user.avatar_url %}
+                        <img src="{{ user.avatar_url }}" class="nav-avatar-img">
+                    {% else %}
+                        <div class="nav-avatar-fallback">
+                            {{ (user.name or "?")[:1].upper() }}
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <!-- No user logged in -->
+                    <div class="nav-avatar-fallback">?</div>
+                {% endif %}
+                
+            </div>
+
+            <div id="dropdownMenu" class="dropdown-menu">
+                <a href="/profile">My Profile</a>
+                <hr>
+                <a href="/logout" class="logout-btn">Logout</a>
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-wrapper">
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+
+<!-- ========== PAGE WRAPPER ========== -->
+<div class="layout-wrapper">
+
+    
+
+    <!-- SECONDARY SIDEBAR -->
+    <aside id="sidebar" class="secondary-sidebar">
+        {% include "components/secondary_sidebar.html" %}
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main id="mainContent" class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+</div>
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
+<script>
+  lucide.createIcons();
+</script>
+
+<style>
+
+.topbar {
+    height: 56px;
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    position: relative;
+    z-index: 100;
+}
+
+/* LEFT SIDE */
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.menu-toggle {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.logo {
+    height: 28px;      
+    width: auto;
+    display: block;
+}
+
+.app-name {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+
+.topbar-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.search-bar {
+    width: 360px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+}
+
+
+.profile-dropdown {
+    position: relative;
+}
+
+
+.nav-profile-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.nav-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.nav-avatar-img {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;         
+    object-position: center;   
+    display: block;
+}
+
+.nav-avatar-fallback {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #F7C7FF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+
+.dropdown-menu {
+    position: absolute;
+    top: 42px;
+    right: 0px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    width: 170px;
+    border-radius: 8px;
+    padding: 8px 0;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+    display: none;
+}
+
+.dropdown-menu.open {
+    display: block;
+}
+
+.dropdown-menu a {
+    display: block;
+    padding: 10px 16px;
+    text-decoration: none;
+    color: #333;
+}
+
+.dropdown-menu a:hover {
+    background: #f3f4f6;
+}
+
+.logout-btn {
+    color: red;
+}
+/* Workspace Switcher */
+.workspace-switcher {
+    position: relative;
+    margin-left: 14px;
+}
+
+.ws-button {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ws-button:hover {
+    background: #e5e7eb;
+}
+
+.ws-menu {
+    display: none;
+    position: absolute;
+    top: 36px;
+    left: 0;
+    background: white;
+    width: 180px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 6px 0;
+    z-index: 200;
+}
+
+.ws-menu.open {
+    display: block;
+}
+
+.ws-item {
+    display: block;
+    padding: 8px 14px;
+    text-decoration: none;
+    color: #333;
+    font-size: 14px;
+}
+
+.ws-item:hover {
+    background: #f3f4f6;
+}
+
+.ws-item.active {
+    background: #e0e7ff;
+    font-weight: 600;
+}
+
+.ws-create {
+    display: block;
+    padding: 8px 14px;
+    font-size: 14px;
+    color: #0b57ff;
+    text-decoration: none;
+}
+
+.ws-create:hover {
+    background: #f3f4f6;
+}
+
+
+</style>
+<script>
+document.getElementById("profileBtn").onclick = () => {
+    document.getElementById("dropdownMenu").classList.toggle("open");
+};
+document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("sidebarProfileBtn");
+    const menu = document.getElementById("sidebarProfileMenu");
+
+    if (btn && menu) {
+        btn.onclick = () => {
+            menu.style.display = menu.style.display === "block" ? "none" : "block";
+        };
+    }
+});
+document.addEventListener("DOMContentLoaded", () => {
+    const wsBtn = document.getElementById("wsBtn");
+    const wsMenu = document.getElementById("wsMenu");
+
+    if (!wsBtn || !wsMenu) return;
+
+    wsBtn.onclick = () => {
+        wsMenu.classList.toggle("open");
+    };
+
+    document.addEventListener("click", (e) => {
+        // also guard inside listener
+        if (!wsBtn.contains(e.target) && !wsMenu.contains(e.target)) {
+            wsMenu.classList.remove("open");
+        }
+    });
+});
+document.addEventListener("DOMContentLoaded", () => {
+  const isDark = localStorage.getItem("darkMode") === "true";
+  document.body.classList.toggle("dark", isDark);
+
+  const toggle = document.getElementById("darkModeToggle");
+  if (!toggle) return;
+
+  toggle.checked = isDark;
+
+  toggle.addEventListener("change", () => {
+    document.body.classList.toggle("dark", toggle.checked);
+    localStorage.setItem("darkMode", toggle.checked);
+  });
+});
+document.addEventListener("DOMContentLoaded", () => {
+    const toggle = document.getElementById("menuToggle");
+    const sidebar = document.getElementById("sidebar");
+
+    
+
+    toggle.addEventListener("click", () => {
+        sidebar.classList.toggle("icon-only");
+
+    });
+});
+    setTimeout(() => {
+    document.querySelectorAll(".flash").forEach(f => {
+      f.style.opacity = "0";
+      setTimeout(() => f.remove(), 400);
+    });
+  }, 3000);
+   
+</script>
+</body>
+</html>

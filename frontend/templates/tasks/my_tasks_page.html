@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='tasks_list.css') }}">
+
+<div class="tasks-page">
+
+    <!-- Page Title -->
+    <h2 class="tasks-title">My Tasks</h2>
+
+    <!-- TABS (List | Board | Calendar | Files + Add) -->
+    <div class="my-tasks-tabs">
+
+        <div class="left-tabs">
+            <a href="/my_tasks?view=list" class="{{ 'active' if view=='list' else '' }}" >List</a>
+            <a href="/my_tasks?view=board" class="{{ 'active' if view=='board' else '' }}" >Board</a>
+            <a href="/my_tasks?view=calender" class="{{ 'active' if view=='calender' else '' }}">Calendar</a>
+            <a href="/my_tasks?view=files" class="{{ 'active' if view=='files' else '' }}">Files</a>
+
+
+
+        </div>
+
+        <div class="add-task-dropdown-wrapper">
+            <button type="button" class="add-task-top" onclick="openGlobalAdd()">
+                <i data-lucide="plus"></i>
+                Add task 
+            </button>
+
+        
+        </div>
+
+    </div>
+    <div id="filesContainer" style="display:none;">
+      {% include "tasks/task_files.html" %}
+    </div>
+
+    {% if view == "list" %}
+
+    <!-- LIST VIEW -->
+        <div class="list-table-header">
+            <div>Name</div>
+            <div>Due date</div>
+            <div>Collaborators</div>
+            <div>Project</div>
+            <div>Status</div>
+            <div>Priority</div>
+        </div>
+
+       {% include "tasks/my_tasks_list.html" %}
+
+    {% elif view == "board" %}
+
+       {% include "tasks/my_tasks_board.html" %}
+
+    {% elif view == "calender" %}
+       
+       {% include "tasks/my_tasks_calender.html" %}
+       <script> openCalendarTab(); </script>
+    {% elif view == "files" %}
+
+       {% include "tasks/task_files.html" %}
+
+    {% endif %}
+
+
+</div>
+
+<script>
+// ---------- INLINE ADD TASK (Asana-like) ----------
+function openInlineAdd(sectionKey) {
+    const inputId = "inline-add-" + sectionKey;
+
+    // Prevent duplicate rows
+    if (document.getElementById(inputId)) return;
+
+    const container = document.querySelector(`[data-section='${sectionKey}'] .section-tasks`);
+    if (!container) return;
+
+    const row = document.createElement("div");
+    row.className = "inline-add-row";
+    row.id = inputId;
+
+    row.innerHTML = `
+        <input class="inline-input" placeholder="Task title..." />
+        <button class="inline-add-btn" onclick="saveInlineTask('${sectionKey}')">Add</button>
+    `;
+
+    container.appendChild(row);
+}
+
+function saveInlineTask(sectionKey) {
+    const input = document.querySelector(`#inline-add-${sectionKey} .inline-input`);
+    if (!input) return;
+
+    const title = input.value.trim();
+    if (!title) return;
+
+    fetch("/add_task_inline", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            title: title,
+            section: sectionKey
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) location.reload();
+    });
+}
+
+
+
+// ---------- MAIN ADD TASK BUTTON ----------
+function openGlobalAdd() {
+    window.location.href = "/add_task";  
+}
+window.openGlobalAdd = openGlobalAdd;
+window._tasksListInit = true;
+
+function openInlineAdd(sectionKey) {
+  const container = document.querySelector(`[data-section="${sectionKey}"] .section-tasks`);
+  if (!container) return;
+
+  if (document.getElementById("inline-add-" + sectionKey)) return; // already open
+
+  const row = document.createElement("div");
+  row.className = "inline-add-row";
+  row.id = "inline-add-" + sectionKey;
+  row.innerHTML = `
+    <input class="inline-input" id="inline-title-${sectionKey}" placeholder="Task title..." />
+    <button class="inline-add-btn">Add</button>
+    <button class="inline-cancel" style="background:transparent;border:none;color:#64748b;margin-left:8px">Cancel</button>
+  `;
+  container.appendChild(row);
+
+  // handlers
+  row.querySelector('.inline-add-btn').addEventListener('click', async () => {
+    const title = document.getElementById("inline-title-" + sectionKey).value.trim();
+    if (!title) return;
+    try {
+      const res = await fetch("/my_tasks/add_task", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ title, section: sectionKey, project_id: null })
+      });
+      const data = await res.json();
+      if (data.success) location.reload();
+      else alert(data.error || "Can't create task");
+    } catch (e) {
+      alert("Network error: " + e.message);
+    }
+  });
+
+  row.querySelector('.inline-cancel').addEventListener('click', () => row.remove());
+}
+
+</script>
+
+{% endblock %}

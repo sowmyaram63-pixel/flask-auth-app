@@ -1,0 +1,82 @@
+
+<div class="project-topbar">
+    <h2 class="project-title">{{ project.title }}</h2>
+    
+    
+
+    <div class="project-tabs">
+        <a href="/projects/{{ project.id }}/overview"
+           class="{% if active_tab=='overview' %}active{% endif %}">
+           Overview
+        </a>
+
+        <a href="/projects/{{ project.id }}/list"
+           class="{% if active_tab=='list' %}active{% endif %}">
+           List
+        </a>
+
+        <a href="/projects/{{ project.id }}/board"
+           class="{% if active_tab=='board' %}active{% endif %}">
+           Board
+        </a>
+
+        <a href="/projects/{{ project.id }}/timeline"
+           class="{% if active_tab=='timeline' %}active{% endif %}">
+           Timeline
+        </a>
+
+        <a href="/projects/{{ project.id }}/dashboard"
+           class="{% if active_tab=='dashboard' %}active{% endif %}">
+           Dashboard
+        </a>
+
+        <a href="/projects/{{ project.id }}/calendar"
+           class="{% if active_tab=='calendar' %}active{% endif %}">
+           Calendar
+        </a>
+
+        <a href="/projects/{{ project.id }}/files"
+           class="{% if active_tab=='files' %}active{% endif %}">
+           Files
+        </a>
+    </div>
+</div>
+
+<style>
+.project-topbar {
+    background: #fff;
+    padding: 18px 25px;
+    border-bottom: 1px solid #e6e6e6;
+}
+
+.project-title {
+    font-size: 22px;
+    margin-bottom: 12px;
+}
+
+.status-pill {
+    background: #e8f9e8;
+    color: #1a8f1a;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+}
+
+.project-tabs {
+    margin-top: 10px;
+}
+
+.project-tabs a {
+    margin-right: 22px;
+    padding-bottom: 6px;
+    text-decoration: none;
+    color: #555;
+    font-size: 15px;
+}
+
+.project-tabs a.active {
+    border-bottom: 3px solid #2667ff;
+    color: #2667ff;
+    font-weight: 600;
+}
+</style>
